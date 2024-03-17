@@ -1,0 +1,40 @@
+.event_card {
+    border-radius: 10px;
+    transition: all ease-in-out 0.35s;
+    width: 265px;
+}
+
+
+.card_menu {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 30px;
+}
+
+.card_btn {
+    font-size: 27px;
+    color: #FFE100;
+    cursor: pointer;
+}
+
+.card_info {
+    position: relative;
+}
+
+.sub_card_menu {
+    position: absolute;
+    top: -45%;
+    left: 33%;
+    border-radius: 10px;
+    background: #212121;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+@media screen and (max-width: 860px) {
+    .sub_card_menu{
+        top: -75%;
+    }
+}

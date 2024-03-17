@@ -1,0 +1,17 @@
+.share_icon{
+    display: flex;
+    gap: 20px;
+}
+.share_icon_i{
+    font-size: 39px !important;
+    margin-top: 10px;
+    color: white;
+    transition: all ease-in-out 0.25s;
+}
+.share_icon_i:hover{
+    color: #FFE100;
+}
+.share_link_i{
+    font-size: 25px;
+    color: #FFE100;
+}

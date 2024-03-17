@@ -1,0 +1,21 @@
+.pc_none {
+    display: none !important;
+}
+
+
+
+
+
+
+
+
+
+
+@media screen and (max-width: 1060px) {
+    .pc_none {
+        display: flex;
+    }
+    .res_none {
+        display: none !important;
+    }
+}

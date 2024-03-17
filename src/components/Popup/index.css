@@ -1,0 +1,29 @@
+.popup {
+    display: none;
+    width: 25%;
+    height: fit-content;
+  }
+  
+  .popup.open {
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: black;
+    padding: 15px;
+    box-shadow: 2px 2px 4px 0px rgba(75, 75, 75, 0.75), 4px 4px 4px 0px rgba(71, 71, 71, 0.61) inset;
+    color: #be9e44;
+  }
+  
+  .popup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    position: relative;
+    text-align: center;
+    font-size: 19px;
+  }
+  .popup-content p{
+    margin-top: 25px;
+  }

@@ -1,0 +1,10 @@
+.order_done_i{
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    color: #FFE100 !important;
+    border-radius:  50%;
+    background: none !important;
+    border: 1px solid #FFE100 !important;
+    height: 40px !important;
+}

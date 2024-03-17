@@ -1,0 +1,12 @@
+.new_event_list_i{
+    font-size: 39px;
+}
+.new_event_list_wap{
+    width: 30%;
+}
+@media screen and (max-width: 860px) {
+    .new_event_list_wap{
+        width: 100%;
+    }
+    
+}

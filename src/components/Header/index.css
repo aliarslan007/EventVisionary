@@ -1,0 +1,260 @@
+nav {
+  width: 85%;
+  margin: 0 auto;
+  margin-top: 20px;
+  background-color: transparent;
+  /* box-shadow: 0 3px 20px rgba(0, 0, 0, 0.2); */
+  display: flex;
+  position: relative;
+  z-index: 10;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo_nav {
+  width: 317px;
+  height: 34px;
+}
+
+.menu {
+  display: block;
+  max-height: none;
+}
+
+.menu-btn {
+  display: none;
+}
+
+.navs-links {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navs-links li a {
+  color: white;
+  font-size: 16px;
+  text-decoration: none;
+  font-weight: 500;
+  border: 2px solid transparent;
+}
+
+.navs-links li a:hover {
+  /* color: var(--color-yellow); */
+  transition: all ease-in-out 0.25s;
+  background: linear-gradient(90deg, rgba(190, 158, 68, 1) 0%, rgba(216, 198, 144, 1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 500;
+}
+
+.li_active {
+  border-radius: 30px;
+  padding: 10px;
+  font-weight: 500;
+  background: linear-gradient(90deg, rgba(190, 158, 68, 1) 0%, rgba(216, 198, 144, 1) 100%);
+  color: #000 !important;
+  transition: all ease-in-out 0.25s !important;
+  border: 1px solid ;
+  border-color: transparent;
+} 
+
+
+.li_active:hover {
+  font-weight: 500;
+  color: transparent !important;;
+  border:1px solid #FFE100;
+}
+
+.login-button {
+  border-radius: 2em;
+  padding: 0.6rem 0.8rem;
+  margin-left: 2vw;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s ease-in-out;
+  background: linear-gradient(90deg, rgba(190, 158, 68, 1) 0%, rgba(216, 198, 144, 1) 100%);
+  color: transparent;
+  background-clip: text;
+  font-weight: 600;
+
+}
+
+
+
+.dropdwon_custom_warp {
+  position: relative;
+}
+
+.dropdownStyles {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #212121;
+  min-width: 160px;
+  color: white;
+  z-index: 1;
+  text-align: right;
+  border-radius: 10px;
+}
+
+.dropdownStyles ul {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 10px;
+}
+
+.dropdwon_custom {
+  display: flex;
+  align-items: center;
+  color: #FFE100;
+  cursor: pointer;
+  gap: 20px;
+}
+
+.dropdwon_custom_i {
+  font-size: 12px;
+}
+
+@media (max-width: 1064px) {
+  .logo_nav {
+    width: 214.7404px;
+    height: 23.1489px;
+  }
+  nav {
+    position: sticky;
+    top: 0; /* Stick the header to the top of the viewport */
+    /* background: black; */
+    width: 100vw;
+    margin: 0;
+    transition: background-color 0.3s ease;
+  }
+  nav.scrolled {
+    background-color: black; /* Change the background color when scrolled */
+  }
+
+  .menu {
+    display: block;
+    position: fixed; /* Use fixed positioning for the menu */
+    top: 0px; 
+    /* right: 0px; */
+    background-color: #131418;
+    /* Set your desired background color */
+    border-radius: 5px;
+    overflow: hidden;
+    transition: all 0.5s ease, opacity 0.5s ease;
+    height: 0;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .menu-btn {
+    display: block;
+    padding: 10px 20px;
+    background-color: transparent;
+    /* Set background to transparent */
+    color: white;
+    /* Adjust text color if necessary */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: color 0.5s ease;
+    /* Add transition for text color */
+    z-index: 1000;
+  }
+
+  .menu-btn span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    margin-bottom: 4px;
+    /* background-color: #333; */
+    transition: transform 0.5s ease;
+    z-index: 100;
+  }
+
+  .menu-btn.open span:nth-child(1) {
+    transform: none;
+    /* Remove rotation */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    /* Rotate 45 degrees */
+  }
+
+  .menu-btn.open span:nth-child(2) {
+    transform: none;
+    /* Remove rotation */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    /* Rotate -45 degrees */
+  }
+
+
+  .menu.open {
+    height: 350px;
+    /* height: 100%; */
+    opacity: 1;
+    visibility: visible;
+    width: 95%;
+
+  }
+
+
+  .menu ul {
+    list-style-type: none;
+    padding: 0;
+    padding: 20px;
+  }
+
+  .menu li {
+    padding: 10px 20px;
+    /* border-bottom: 1px solid #ddd; */
+  }
+
+  .menu li:last-child {
+    border-bottom: none;
+  }
+
+  .menu a {
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+
+  .menu-btn span {
+    display: block;
+    width: 24px;
+    /* Adjust as necessary */
+    height: 2px;
+    margin-bottom: 4px;
+    background-color: white;
+    transition: transform 0.3s ease;
+  }
+
+  .pc_none {
+    display: flex;
+  }
+
+
+  .navs-links {
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+  }
+
+}
+
+
+
+.icon_i {
+  font-size: 28px;
+  /* Adjust the size as needed */
+}
