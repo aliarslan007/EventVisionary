@@ -161,7 +161,7 @@ const EventsPage = () => {
                                 !event.is_draft &&
                                 !event.is_ended &&
                                 !event.is_paused &&
-                                !event.is_cancelled
+                                 !event.is_cancelled
                             )
                             .map(event => (
                                 <EventsCard
