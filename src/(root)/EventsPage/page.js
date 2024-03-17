@@ -14,6 +14,10 @@ const EventsPage = () => {
     const [venueId, setVenueId] = useState([]);
     const [venue, setVenue] = useState([]);
     
+    const [searchquery, setSearchquery] = useState('');
+    const [searchInput, setSearchInput] = useState(''); 
+    const [filteredEvents, setFilteredEvents] = useState([]);
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -77,11 +81,38 @@ const EventsPage = () => {
     };
     
     // Call fetchVenueData function for each event outside of JSX
-useEffect(() => {
-  events.forEach(event => {
-      fetchVenueData(event.Venue_name);
-  });
-}, [events]);
+    useEffect(() => {
+    events.forEach(event => {
+        fetchVenueData(event.Venue_name);
+    });
+    }, [events]);
+
+    // Function to handle input change
+    const handleInputChange = (e) => {
+        // Update the search input value state
+        setSearchInput(e.target.value);
+        // Call the function to update the search query state in the parent component
+        setSearchquery(e.target.value);
+    };
+
+    // useEffect to update filteredVenuesList when searchquery changes
+    useEffect(() => {
+        // Function to filter venues based on search query
+        const filterEvents = (query) => {
+            const filteredEvents = events.filter((event) => {
+                // Perform case-insensitive search on venue name
+                const lowerCaseQuery = query.toLowerCase();
+
+                return (
+                    event.Event_Name.toLowerCase().includes(lowerCaseQuery) 
+                );            
+            });
+            // Update the filteredVenuesList state with the filtered venues
+            setFilteredEvents(filteredEvents);
+        };
+    
+        filterEvents(searchquery);
+    }, [searchquery, events]);
 
     return (
       <EventProvider>
@@ -90,7 +121,9 @@ useEffect(() => {
         <div className='main_container'>
             <section className="search_form_a">
                 <form action="" className="search_form">
-                    <input type="search" placeholder="Search for an event, artist, or venue..." />
+                    <input type="search" placeholder="Search for an event, artist, or venue..." 
+                    value={searchInput}  
+                    onChange={handleInputChange}/>
                     <div className="search_al">
 
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -122,7 +155,7 @@ useEffect(() => {
                     <h2>Upcoming Events</h2>
                     <div className="events_row_2">
                     <div className="event_cards" >
-                        {events
+                        {filteredEvents
                             .filter(event =>
                                 !event.is_archived &&
                                 !event.is_draft &&
