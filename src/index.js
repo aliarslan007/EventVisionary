@@ -82,7 +82,7 @@ root.render(
         <Route path="/ArchivedPrice" element={<ArchivedPrice />} />
         <Route path="/CustomerAccount" element={<CustomerAccount />} />
         <Route path="/DefineTicket" element={<DefineTicket />} />
-        <Route path="/Events" element={<Events />} />
+        <Route path="/Events/:token" element={<Events />} />
         <Route path="/forgot" element={<Forgot />} />
         <Route path="/Keywords" element={<Keywords />} />
         <Route path="/Login" element={<Login />} />

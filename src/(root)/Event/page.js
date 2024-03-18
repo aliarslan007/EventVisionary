@@ -1,6 +1,6 @@
 'use client'
 import SubMenus, { Silder_icon } from '../../components/SubMenus/SubMenus'
-import React, { useState, useEffect} from 'react'
+import React, { useState, useEffect, useRef} from 'react'
 import { CiCirclePlus } from 'react-icons/ci'
 import { FaChevronDown, FaFacebookF, FaLinkedin, FaRegCalendarAlt, FaRegUser, FaTwitter } from 'react-icons/fa'
 import { FaGear, FaRegMessage } from 'react-icons/fa6'
@@ -17,7 +17,8 @@ const Event = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [venueId, setVenueId] = useState([]);
+    const [uniqureUrl, setUniqureUrl] = useState([]);
+    const inputRef = useRef(null);
 
     const [isMainOpen, setIsMainOpen] = useState(false);
     const [isEventOpen, setIsEventOpen] = useState(false);
@@ -30,7 +31,19 @@ const Event = () => {
         setIsEventOpen(!isEventOpen);
     };
 
-
+    // handle copy to clipboard
+    const handleCopyToClipboard = () => {
+        const inputValue = inputRef.current.value;
+        navigator.clipboard.writeText(inputValue)
+          .then(() => {
+            console.log('Text copied to clipboard:', inputValue);
+            // Optionally, you can show a success message to the user
+          })
+          .catch(error => {
+            console.error('Failed to copy text to clipboard:', error);
+            // Optionally, you can show an error message to the user
+          });
+      };
     
     useEffect(() => {
         const fetchData = async () => {
@@ -40,9 +53,30 @@ const Event = () => {
                 if (!authToken) {
                   throw new Error('Authentication token not found');
                 }
+                const authUserId = localStorage.getItem('authUserId');
+
+                if (!authUserId) {
+                    throw new Error('Authentication user id   found');
+                }
+            
                 // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
                 
-                // Fetch event data
+                // Fetch user data
+                const userResponse = await fetch(`http://127.0.0.1:8000/api/users/${authUserId}`, {
+                    headers: {
+                        Authorization: `Token ${authToken}`
+                    }
+                });
+                if (!userResponse.ok) {
+                    throw new Error('Failed to fetch event data');
+                }
+                const userData = await userResponse.json();
+                const unique_token = userData.unique_token;
+                const baseUrl = window.location.href;
+                const newUrl = `${baseUrl}s/token=${unique_token}`;
+                setUniqureUrl(newUrl);
+
+                // fetching events details
                 const eventResponse = await fetch(`http://127.0.0.1:8000/api/events/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
@@ -53,6 +87,7 @@ const Event = () => {
                 }
                 const eventData = await eventResponse.json();
                 setEvents(eventData);
+
 
             } catch (error) {
                 setError(error);
@@ -181,8 +216,8 @@ const Event = () => {
                                         <p className="para_title">Share a public version of this page. </p>
                                         <p className="para_p">For example, you can add this to your bio link section on your social media, or share on your website to lead customers to your events.</p>
                                         <div className="copy_links">
-                                            <input type="text" disabled className="cursor_pointer" />
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="20" viewBox="0 0 21 20" fill="none">
+                                            <input type="text" value={uniqureUrl} disabled ref={inputRef} className="cursor_pointer white_txt" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" onClick={handleCopyToClipboard} width="21" height="20" viewBox="0 0 21 20" fill="none">
                                                 <path d="M17.1667 7.5H9.66667C8.74619 7.5 8 8.24619 8 9.16667V16.6667C8 17.5871 8.74619 18.3333 9.66667 18.3333H17.1667C18.0871 18.3333 18.8333 17.5871 18.8333 16.6667V9.16667C18.8333 8.24619 18.0871 7.5 17.1667 7.5Z" stroke="#FAE100" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                                 <path d="M4.66699 12.5001H3.83366C3.39163 12.5001 2.96771 12.3245 2.65515 12.0119C2.34259 11.6994 2.16699 11.2754 2.16699 10.8334V3.33341C2.16699 2.89139 2.34259 2.46746 2.65515 2.1549C2.96771 1.84234 3.39163 1.66675 3.83366 1.66675H11.3337C11.7757 1.66675 12.1996 1.84234 12.5122 2.1549C12.8247 2.46746 13.0003 2.89139 13.0003 3.33341V4.16675" stroke="#FAE100" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                             </svg>
@@ -220,7 +255,7 @@ const Event = () => {
                                 <div className="events_row_2">
                                     <div className="event_cards" >
                                     {events.map(event => (
-                                        <EventsCard imge={event.Event_image} eventDateTime={`${event.start_date} • ${event.start_time}`} TicketType="Sell Tickets" TicketHref='/sellTickets' />
+                                        <EventsCard imge={event.Event_image} eventDateTime={`${event.start_date} • ${event.start_time}`} TicketType="Sell Tickets" TicketHref='/sellTickets' eventId={event.id}/>
                                         ))}
                                     </div>
                                 </div>

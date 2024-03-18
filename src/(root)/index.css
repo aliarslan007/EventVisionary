@@ -482,6 +482,12 @@ main {
     flex-direction: column;
     gap: 20px;
   }
+  .btn_black_bg {
+    background-color: transparent;
+    color: inherit; /* Inherit the color of its parent */
+    border: none; /* Optionally remove any border */
+    cursor: pointer;
+}
 
 
 @media screen and (max-width: 1124px) {
