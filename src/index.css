@@ -1309,7 +1309,14 @@ input:checked+.slider:before {
     display: flex;
     flex-direction: column;
     gap: 40px;
-    border-radius: 10px;
+    border-radius: 10px;    
+    position: relative;
+    overflow: hidden;
+}
+.img_inside_div{
+    max-width: 100%;
+    max-Height: 100%;
+    object-fit: contain ;
 }
 
 #Prices {
@@ -2115,10 +2122,7 @@ input:checked+.slider:before {
 
 .l_binfo input {
     width: 400px;
-
-
 }
-
 
 .card_formi {
     display: flex;
@@ -5397,6 +5401,7 @@ height: 27px;
         height: 180px;
     }
 
+    
     .sms {
         width: 100%;
     }

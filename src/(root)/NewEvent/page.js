@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React,  { useState, useEffect } from 'react'
 import { CiCirclePlus } from "react-icons/ci";
 import { FaArrowLeft, FaChevronDown, FaRegCalendarAlt, FaRegUser } from "react-icons/fa";
 import { SlLocationPin } from "react-icons/sl";
@@ -14,6 +14,10 @@ import RootLayout from '../layout';
 
 
 const NewEvent = () => {
+    
+
+    
+
 
 
     return (
