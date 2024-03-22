@@ -3689,7 +3689,7 @@ height: 27px;
     z-index: 1;
 }
 
-.add_venue form {
+.venueForm {
     display: flex;
     flex-direction: column;
     text-align: left;
@@ -3697,16 +3697,16 @@ height: 27px;
     gap: 20px;
 }
 
-.add_venue form h3 {
+.venueForm h3 {
     font-weight: 600;
 }
 
-.add_venue form button {
+.venueForm button {
     width: 60%;
     margin: auto;
 }
 
-.add_venue form input {
+.venueForm input {
     background: white;
     padding: 5px;
     color: black;

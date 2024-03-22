@@ -5,7 +5,7 @@ import TicketPrice from '../../components/TicketPrice/TicketPrice'
 import { Ellis_3 } from '../../public'
 // import Image from 'next/image'
 // import Link from 'next/link'
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import { CiCirclePlus } from 'react-icons/ci'
 import { FaRegUser } from 'react-icons/fa'
 import { FaGear, FaRegMessage } from 'react-icons/fa6'
@@ -13,8 +13,14 @@ import { IoSpeedometerOutline } from 'react-icons/io5'
 import { RiMoneyDollarCircleLine } from 'react-icons/ri'
 import { SlLocationPin } from 'react-icons/sl'
 import RootLayout from '../layout';
+import { useLocation } from 'react-router-dom';
 
-const page = () => {
+
+const DefineTicket = () => {
+    const location = useLocation();
+    const eventId = new URLSearchParams(location.search).get('eventId');
+    
+
     return (
         <>
           <RootLayout>
@@ -103,10 +109,6 @@ const page = () => {
                                 </div>
                                 <TicketPrice label='Next' href='/PublishEvent'/>
 
-
-
-
-
                             </div>
 
 
@@ -120,4 +122,4 @@ const page = () => {
     )
 }
 
-export default page
+export default DefineTicket

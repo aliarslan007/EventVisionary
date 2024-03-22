@@ -143,7 +143,7 @@ const Events = () => {
                         }   
                     </div>
                     <div className="organiner_img">
-                    <img className="organiner_img" src={buildCompleteImageUrl(user.logo_image)} alt='Rectangle' className='event_card_img'/>
+                    <img className="organiner_img event_card_img" src={buildCompleteImageUrl(user.logo_image)} alt='Rectangle'/>
 
                     </div>
 

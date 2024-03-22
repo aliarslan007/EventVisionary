@@ -14,11 +14,6 @@ import RootLayout from '../layout';
 
 
 const NewEvent = () => {
-    
-
-    
-
-
 
     return (
         <>

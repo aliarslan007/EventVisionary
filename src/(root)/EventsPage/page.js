@@ -44,6 +44,7 @@ const EventsPage = () => {
             // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
             const response = await fetch('http://127.0.0.1:8000/api/events', {
               headers: {
+                'Content-Type': 'application/json',
                 Authorization: `Token ${authToken}`
               }
             });

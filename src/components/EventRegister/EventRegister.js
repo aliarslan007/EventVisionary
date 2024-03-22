@@ -4,7 +4,7 @@ import { CiCirclePlus } from 'react-icons/ci'
 import ArchivedBack from '../ArchivedBack/ArchivedBack.js';
 // import Image from 'next/image';
 import { Upload_img } from '../../public';
-
+import { useNavigate } from 'react-router-dom';
 
 // var AgeValue;
 // (function (AgeValue) {
@@ -20,6 +20,9 @@ const AgeValue = {
 };
 
 const EventRegister = ({ title = '', label = '', href = '', showBackButton }) => {
+
+    const navigate = useNavigate();
+
     const [eventTitle, setEventTitle] = useState('');
     const [eventType, setEventType] = useState('');
     const [eventCategory, setEventCategory] = useState('');
@@ -47,6 +50,44 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
     const [eventTypesMap, setEventTypesMap] = useState({}); 
     const [eventCategoriesMap, setEventCategoriesMap] = useState({}); 
 
+    // add new venue states
+    const [venueName, setVenueName] = useState('');
+    const [venueNickName, setVenueNickName] = useState('');
+    const [venueAddress, setVenueAddress] = useState('');
+    const [venueCity, setVenueCity] = useState('');
+    const [venuePostalCode, setVenuePostalCode] = useState('');
+    const [venueCountry, setVenueCountry] = useState('united states');
+    const [venueState, setVenueState] = useState('Delaware');
+
+    const handleVenueNameChange = (e) => {
+        setVenueName(e.target.value);
+    };
+
+    const handleVenueNickNameChange = (e) => {
+        setVenueNickName(e.target.value);
+    };
+
+    const handleVenueAddressChange = (e) => {
+        setVenueAddress(e.target.value);
+    };
+
+    const handleVenueCityChange = (e) => {
+        setVenueCity(e.target.value);
+    };
+
+    const handleVenuePostalCodeChange = (e) => {
+        setVenuePostalCode(e.target.value);
+    };
+
+    const handleVenueCountryChange = (e) => {
+        setVenueCountry(e.target.value);
+    };
+
+    const handleVenueStateChange = (e) => {
+        setVenueState(e.target.value);
+    };
+
+
     const [selectedAge, setSelectedAge] = useState(AgeValue.P);
     const handleCheckboxChange = (value) => {
         console.log('1st selected age is ');
@@ -73,6 +114,9 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
       
       const handleDragOver = (e) => {
         e.preventDefault();
+        const file = e.target.files[0]; 
+        // Do something with the uploaded image file
+        setUploadedImage(file);
       };
       
       const handleDrop = (e) => {
@@ -196,6 +240,14 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                 
                 const venueData = await response.json();
 
+                if (venueData.length > 0) {
+                    // Extract the first venue
+                    const firstVenue = venueData[0];
+                    
+                    // Set the first venue to setEventVenue
+                    setEventVenue(firstVenue.venue_name);
+                }
+
                 const venueMap = {};
                 venueData.forEach(eventVenue => {
                     venueMap[eventVenue.venue_name] = eventVenue.id;
@@ -219,6 +271,14 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
 
                 const eventTypesData = await eventTypesResponse.json();
                 // Construct a map of event type names to IDs
+                if (eventTypesData.length > 0) {
+                    // Extract the first venue
+                    const firstEventType = eventTypesData[0];
+                    
+                    // Set the first venue to setEventVenue
+                    setEventType(firstEventType.name);
+                }
+
                 const typeMap = {};
                 eventTypesData.forEach(eventType => {
                     typeMap[eventType.name] = eventType.id;
@@ -241,6 +301,14 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                 }
 
                 const eventCategoriesData = await eventCategoriesResponse.json();
+
+                if (eventCategoriesData.length > 0) {
+                    // Extract the first venue
+                    const firstEventCategory = eventCategoriesData[0];
+                    
+                    // Set the first venue to setEventVenue
+                    setEventCategory(firstEventCategory.name);
+                }
 
                 const categoriesMap = {};
                 eventCategoriesData.forEach(eventCatgory => {
@@ -288,7 +356,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
             // console.log(selectedDate);
             // console.log(enteredDate);
             if (selectedDate < today) {
-                alert("Please select a date from today onwards.");
+                // alert("Please select a date from today onwards.");
                 return;
             }
 
@@ -331,7 +399,26 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
 
           // Function to handle save button click
     const handleSaveButtonClick = async (event) => {
-        // event.preventDefault();
+        event.preventDefault();
+        const isValidStartDate = /^\d{4}-\d{2}-\d{2}$/.test(eventStartDate);
+        const isValidEndDate = /^\d{4}-\d{2}-\d{2}$/.test(eventEndDate);
+        if (!eventTitle || !eventDescription || !eventStartDate || !eventStartTime || !eventEndDate || !eventEndTime || !uploadedImage || !isValidStartDate || !isValidEndDate) {
+            // If any required field is null, generate an alert
+            console.log("values are ");
+            console.log(eventTitle);
+            console.log(eventDescription);
+            console.log(eventStartDate);
+            console.log(eventStartTime);
+            console.log(eventEndDate);
+            console.log(eventEndTime);
+            console.log(uploadedImage);
+            console.log(isValidStartDate);
+            console.log(isValidEndDate);
+            
+            alert('Please fill in all required fields and enter valid dates');
+            return; // Exit the function without calling the API
+        }
+
         let useExistingChartVar, cloneChartVar, eventForAllAgesVar, 
             eventForAll18PlusVar, eventForAll21PlusVar;
 
@@ -342,6 +429,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
         else {
             useExistingChartVar = false;
             cloneChartVar = true;
+        }
         
         if (selectedAge === AgeValue.P) {
             eventForAllAgesVar = true;
@@ -414,14 +502,90 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
             throw new Error('Failed to save data');
         }
         // Handle successful response
+        const newEvent = await response.json();
+        
+        const locationHeader = response.headers.get('Location');
+        const eventId = locationHeader ? locationHeader.split('/').pop() : null;
+
+        console.log('Newly created event ID:', eventId);
+        console.log("ne event is ");
+        console.log(newEvent);
+        console.log(newEvent.id);
+        console.log(response);
+
+        navigate(`/DefineTicket/${newEvent.id}`);
+        // event.target.submit();
         // window.location.reload(true);
 
     } catch (error) {
         console.error('Error saving data:', error);
         // Handle error
     }
+
     };
+
+    const handleNewVenueFormSubmit = async () => {
+        // event.preventDefault();
+        const parsedPostalCode = parseInt(venuePostalCode, 10); // Convert the string to an integer
+
+        // Check if all required fields are filled
+        if (!venueName || !venueAddress || !venueCity || !venuePostalCode || !venueCountry || !venueState) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+
+        // Construct the request body
+        
+
+        try {
+
+            const authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                throw new Error('Authentication token not found');
+            }
+
+            const requestBody = JSON.stringify({
+                venue_name: venueName,
+                venue_nickName: venueNickName,
+                venue_address: venueAddress,
+                venue_city: venueCity,
+                venue_postal_code: parsedPostalCode,
+                venue_country: venueCountry,
+                venue_state: venueState
+            });
+            const response = await fetch('http://127.0.0.1:8000/api/venues/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`
+                },
+                body:requestBody
+            });
+            if (!response.ok) {
+                console.error(`Error: ${response.status}`);
+                const responseBody = await response.text();
+                
+                // event.target.submit();
+                console.log('authToken', authToken);
+                console.log('Form submitted with data:', requestBody);
+                alert("Failed to save data, Response body: ", responseBody);
+                console.error(`Response body: ${responseBody}`);
+                throw new Error('Failed to save data');
+
+            }
+            // Handle successful response
+            alert("New Venue Form Submitted Successfully  ");
+            
+            
+    
+        } catch (error) {
+            console.error('Error saving data:', error);
+            // Handle error
+        }
+        // closePopup();
+        window.location.reload(true);
     };
+    
         
     return (
         <div className="Details">
@@ -508,29 +672,29 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                                         </svg>
                                     </a>
                                     <h2>Add a New Venue</h2>
-                                    <div action="">
+                                    <div className='venueForm' >
                                         <label htmlFor="">Venue Name</label>
-                                        <input type="text" className="full_in" />
+                                        <input type="text" className="full_in" onChange={handleVenueNameChange }/>
                                         <label htmlFor="">Venue Alias</label>
-                                        <input type="text" className="full_in" />
+                                        <input type="text" className="full_in" onChange={handleVenueNickNameChange  } />
                                         <h3>Venue Location</h3>
                                         <label htmlFor="">Address </label>
-                                        <input type="text" className="full_in" />
+                                        <input type="text" className="full_in" onChange={handleVenueAddressChange  } />
                                         <div className="sub_venue">
                                             <div className="sub_vi">
 
                                                 <label htmlFor="">City</label>
-                                                <input type="text" />
+                                                <input type="text" onChange={handleVenueCityChange  } />
                                             </div>
                                             <div className="sub_vi">
 
-                                                <label htmlFor=""> State</label>
-                                                <select name="" id="">
-                                                    <option value="" selected>delaware</option>
-                                                    <option value="">LA</option>
-                                                    <option value="">Utha</option>
-                                                    <option value="">NYC</option>
-                                                </select>
+                                            <label htmlFor="venueState">State</label>
+                                            <select name="venueState" id="venueState" value={venueState} onChange={handleVenueStateChange}>
+                                                <option value="delaware" selected>Delaware</option>
+                                                <option value="LA">LA</option>
+                                                <option value="Utha">Utah</option>
+                                                <option value="NYC">NYC</option>
+                                            </select>
                                             </div>
 
                                         </div>
@@ -538,12 +702,12 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                                             <div className="sub_vi">
 
                                                 <label htmlFor=""> Postal Code</label>
-                                                <input type="text" />
+                                                <input type="text" onChange={handleVenuePostalCodeChange  } />
                                             </div>
                                             <div className="sub_vi">
 
                                                 <label htmlFor=""> Country</label>
-                                                <select name="" id="">
+                                                <select name="venueCountry" id="venueCountry" value={venueCountry} onChange={handleVenueCountryChange }>
                                                     <option value="" selected>united states</option>
                                                     <option value="">united Kingdom</option>
                                                     <option value="">Saudi Arabia</option>
@@ -551,7 +715,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                                             </div>
 
                                         </div>
-                                        <button type="submit" className="btn" style={{ color: "#fff" }}>Create Venue</button>
+                                        <button type="button" onClick={handleNewVenueFormSubmit} className="btn" style={{ color: "#fff" }}>Create Venue</button>
                                     </div>
 
                                 </div>
