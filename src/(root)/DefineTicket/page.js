@@ -14,11 +14,60 @@ import { RiMoneyDollarCircleLine } from 'react-icons/ri'
 import { SlLocationPin } from 'react-icons/sl'
 import RootLayout from '../layout';
 import { useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 
 const DefineTicket = () => {
-    const location = useLocation();
-    const eventId = new URLSearchParams(location.search).get('eventId');
+    // const location = useLocation();
+    // const eventId = new URLSearchParams(location.search).get('eventId');
+    const { eventId } = useParams();
+
+    console.log("event id is ",eventId )
+    const [eventStartDate, setEventStartDate] = useState('');
+    const [eventEndDate, setEventEndDate] = useState('');
+
+    useEffect(() => {
+
+        const fetchData = async () => {
+            try {
+                const authToken = localStorage.getItem('authToken');
+                if (!authToken) {
+                    throw new Error('Authentication token not found');
+                }
+
+                // fetcb venue data
+                const response = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+                    headers: {
+                        Authorization: `Token ${authToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch venue data');
+                }
+
+                
+                const eventData = await response.json();
+                setEventStartDate(eventData.start_date);
+                setEventEndDate(eventData.end_date);
+
+
+                
+            } catch (error) {
+                console.error('Error fetching venue data:', error);
+            }
+        };
+
+        fetchData();
+
+    }, []);
+
+
+    useEffect(() => {
+        console.log("event start date is ", eventStartDate);
+        console.log("event end date is ", eventEndDate);
+
+    }, [eventStartDate]);
     
 
     return (
@@ -107,7 +156,7 @@ const DefineTicket = () => {
                                         href="/ShareEvent">4. share Event
                                     </a>
                                 </div>
-                                <TicketPrice label='Next' href='/PublishEvent'/>
+                                <TicketPrice label='Next' href='/PublishEvent' eventId={eventId} eventStartDate={eventStartDate} eventEndDate={eventStartDate} />
 
                             </div>
 

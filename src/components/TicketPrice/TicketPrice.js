@@ -8,16 +8,91 @@ import ArchivedBack from '../ArchivedBack/ArchivedBack';
 import { v4 as uuidv4 } from 'uuid';
 
 
-const TicketPrice = ({ title = '', label = '', href = '', showBackButton }) => {
+const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventId=null, eventStartDate="", eventEndDate="" }) => {
     const [dsVisible, setDsVisible] = useState(true);
     const [formSecVisible, setFormSecVisible] = useState(false);
     const [iconDirection, setIconDirection] = useState('down');
     const [instantHideSwitch, setInstantHideSwitch] = useState(false);
     const [absorbsServiceFees, setAbsorbsServiceFees] = useState(false);
     const [enableSalesTax, setEnableSalesTax] = useState(false);
+    const [salesTax, setSalesTax] = useState(null);
+    const [eventSaleStartDate, setEventSaleStartDate] = useState('');
+    const [eventSaleStartTime, setEventSaleStartTime] = useState('');
+    const [eventSaleEndDate, setEventSaleEndDate] = useState('');
+    const [eventSaleEndTime, setEventSaleEndTime] = useState('');
     const [mainLevelsVisibility, setMainLevelsVisibility] = useState({});
     const [mainLevelData, setMainLevelData] = useState([]);
     const [subLevelData, setSubLevelData] = useState({});
+
+    const handleEventSaleStartTimeChange = (e) => {
+        setEventSaleStartTime(e.target.value);
+    };
+
+    const handleEventSaleEndTimeChange = (e) => {
+        setEventSaleEndTime(e.target.value);
+    };
+
+    const handleEventSaleStartDateChange = (e) => {
+        // Get the entered date value
+        const enteredDate = e.target.value;
+
+        // Validate the entered date format
+        const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(enteredDate);
+
+        if (isValidDate) {
+            // Check if the entered date is not before today's date
+            // const today = new Date();
+            const selectedDate = new Date(enteredDate);
+            const miniDate = new Date(eventStartDate);
+            // console.log(today);
+            // console.log(selectedDate);
+            // console.log(enteredDate);
+            if (selectedDate < miniDate) {
+                // alert("Please select a date from today onwards.");
+                return;
+            }
+
+            // Set the eventStartDate state variable
+            setEventSaleStartDate(enteredDate);
+        } else {
+            console.log(enteredDate);
+            // If the entered date format is invalid, display an error message or handle it accordingly
+            alert("Please enter a valid date in MM-DD-YYY-format.");
+        }
+    };
+
+    const handleEventSaleEndDateChange = (e) => {
+        // Get the entered date value
+        const enteredDate = e.target.value;
+
+        // Validate the entered date format
+        const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(enteredDate);
+
+        if (isValidDate) {
+            // Check if the entered date is not before today's date
+            const mini_dat = new Date(eventStartDate);
+            const max_dat = new Date(eventEndDate);
+            const selectedDate = new Date(enteredDate);
+            console.log(mini_dat);
+            console.log(selectedDate);
+            console.log(enteredDate);
+            if (selectedDate < mini_dat) {
+                alert("Please select a date from today onwards.");
+                return;
+            }
+            else if (selectedDate > max_dat) {
+                alert("Please select a date less than event ends date.");
+                return;
+            }
+
+            // Set the eventStartDate state variable
+            setEventSaleEndDate(enteredDate);
+        } else {
+            console.log(enteredDate);
+            // If the entered date format is invalid, display an error message or handle it accordingly
+            alert("Please enter a valid date in MM-DD-YYY-format.");
+        }
+    };
 
     const [mainLevels, setMainLevels] = useState([
         { id: 1, subLevels: [{ id: 1 }], isSubLevelsVisible: true },
@@ -28,6 +103,10 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton }) => {
 
     const handleEnableSalesTaxChange = () => {
     setEnableSalesTax(!enableSalesTax);
+    };
+
+    const handleSalesTaxChange = (e) => {
+        setSalesTax(e.target.value);
     };
 
     // const toggleVisibility = () => {
@@ -322,7 +401,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton }) => {
                             {showTaxInputs && (
                                 <div className="tax_inputs">
                                     <div className="per_tax">
-                                        <input type="number" min="0" />
+                                        <input type="number" className='white_txt' min="0" defaultValue={salesTax} onChange={handleSalesTaxChange} />
                                         <span>%</span>
 
                                     </div>
@@ -335,7 +414,10 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton }) => {
 
                                         <p>When Should Ticket Sales Start?</p>
                                         <div className="start_tax_inputs">
-                                            <input type="date" className="myInput2" disabled={startImmediately} />
+                                            <input type="date" className="myInput2 white_txt"  
+                                            disabled={startImmediately} defaultValue={eventSaleStartDate} onBlur={handleEventSaleStartDateChange}
+                                             min={eventStartDate} max={eventEndDate}
+                                            />
                                             <input type="time" className="myInput2" disabled={startImmediately} />
 
                                         </div>
@@ -356,7 +438,9 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton }) => {
 
                                         <p>When Should Ticket Sales End?</p>
                                         <div className="start_tax_inputs">
-                                            <input type="date" className="myInput3" disabled={endImmediately} />
+                                            <input type="date" className="myInput3 white_txt"
+                                             defaultValue={eventSaleEndDate} onBlur={handleEventSaleEndDateChange} min={eventStartDate} max={eventEndDate}
+                                             disabled={endImmediately} />
                                             <input type="time" className="myInput3" disabled={endImmediately} />
 
                                         </div>
