@@ -3,7 +3,7 @@ import SubMenus, { Silder_icon } from '../../components/SubMenus/SubMenus'
 import { Ellis_3, Publish_img } from '../../public'
 // import Image from 'next/image'
 // import Link from 'next/link'
-import React from 'react'
+import React,{useState, useEffect, useRef} from 'react'
 import { CiCirclePlus } from 'react-icons/ci'
 import { FaFacebookF, FaLinkedin, FaRegUser, FaTwitter } from 'react-icons/fa'
 import { FaGear, FaRegMessage } from 'react-icons/fa6'
@@ -12,10 +12,74 @@ import { RiMoneyDollarCircleLine } from 'react-icons/ri'
 import { SlLocationPin } from 'react-icons/sl'
 import { MdExitToApp } from "react-icons/md";
 import RootLayout from '../layout';
+import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import "./index.css"
 
 const ShareEvent = () => {
+    const navigate = useNavigate();
+    const { eventId } = useParams();
+    const inputRef = useRef(null);
+    const [uniqureUrl, setUniqureUrl] = useState([]);
+
+    const handleCopyToClipboard = () => {
+        const inputValue = inputRef.current.value;
+        navigator.clipboard.writeText(inputValue)
+          .then(() => {
+            console.log('Text copied to clipboard:', inputValue);
+            // Optionally, you can show a success message to the user
+          })
+          .catch(error => {
+            console.error('Failed to copy text to clipboard:', error);
+            // Optionally, you can show an error message to the user
+          });
+      };
+      
+      useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const authToken = localStorage.getItem('authToken');
+
+                if (!authToken) {
+                  throw new Error('Authentication token not found');
+                }
+                const authUserId = localStorage.getItem('authUserId');
+
+                if (!authUserId) {
+                    throw new Error('Authentication user id   found');
+                }
+            
+                // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
+                
+                // Fetch user data
+                const eventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}`, {
+                    headers: {
+                        Authorization: `Token ${authToken}`
+                    }
+                });
+                if (!eventResponse.ok) {
+                    throw new Error('Failed to fetch event data');
+                }
+                const eventData = await eventResponse.json();
+                const unique_token = eventData.unique_token;
+                const baseUrl = window.location.origin; // Get the base URL of the current page
+                const newUrl = `${baseUrl}/SingleEvent/${unique_token}`;
+                setUniqureUrl(newUrl);
+
+                
+
+
+            } catch (error) {
+                throw new Error('Failed to fetch event data', error);
+            }
+        };
+    
+        // Call the fetchData function
+        fetchData();
+    }, []); // Include eventId in the dependency array to trigger the effect when it changes
+    
+
     return (
         <>
             <RootLayout>
@@ -117,9 +181,9 @@ const ShareEvent = () => {
                                             <h3>Share Options</h3>
                                             <div className="share_link">
                                                 <p>Shareable Link:</p>
-                                                <input type="text" disabled />
+                                                <input type="text" className='white_txt' value={uniqureUrl} disabled ref={inputRef} />
                                                 {/* <img src="../imgs/copy 1.png" alt=""/>/ */}
-                                                <IoCopyOutline className="share_link_i" />
+                                                <IoCopyOutline className="share_link_i" onClick={handleCopyToClipboard} />
 
                                             </div>
                                             <div className="directly">

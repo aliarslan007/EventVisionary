@@ -1376,19 +1376,36 @@ input:checked+.slider:before {
 /* ---------------------publish----------------- */
 .publish_section {
     display: flex;
-    align-items: flex-end;
+    /* align-items: flex-end; */
     flex-direction: column;
     gap: 20px;
 }
+.publish_class{
+
+    height: 100%;
+    width: 100%;
+    text-align: center;  
+}
+.W_100_H_100{
+    width: 100%;
+    height: 100%;
+}
+
 
 .publish_section img {
     width: 100%;
+    
+}
+.publish_section div {
+    width: 100%;
+    
 }
 
 .publish_btns {
     display: flex;
     align-items: center;
     gap: 20px;
+    justify-content: right;
 }
 
 
@@ -2119,6 +2136,23 @@ input:checked+.slider:before {
 .white_txt{
     color: white;
 }
+.yellow_txt{
+    color: var(--color-yellow);
+}
+.disabled_div {
+    pointer-events: none; /* Prevents clicks and other mouse events */
+    /* opacity: 0.5  */
+  }
+  .align_centre{
+    display: flex;
+    align-items: center;
+  }
+  .display_flex{
+    display: flex;
+  }
+  .width_80{
+    width: 80%;
+  }
 
 .l_binfo input {
     width: 400px;

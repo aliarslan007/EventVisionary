@@ -63,6 +63,8 @@ const EventsPage = () => {
     
         fetchData();
       }, []);
+
+      
     const fetchVenueData = async (venueId) => {
         try {
             const authToken = localStorage.getItem('authToken');
@@ -263,7 +265,7 @@ const EventsPage = () => {
                                     showMenuButton={false}
                                     eventDateTime={`${event.start_date} • ${event.start_time}`}
                                     TicketType="Get Tickets"
-                                    TicketHref={`/SingleEvent/${event.id}`}
+                                    TicketHref={`/SingleEvent/${event.unique_token}`}
                                 />
                             ))}
                     </div>

@@ -91,12 +91,12 @@ root.render(
         <Route path="/Sign_Up_org" element={<Sign_Up_org />} />
         <Route path="/MyPlan" element={<MyPlan />} />
         <Route path="/MyPurchases" element={<MyPurchases />} />
-        <Route path="/PublishEvent" element={<PublishEvent />} />
+        <Route path="/PublishEvent/:eventId" element={<PublishEvent />} />
         <Route path="/Setting" element={<Setting />} />
-        <Route path="/ShareEvent" element={<ShareEvent />} />
-        <Route path="/SingleEvent/:eventId" element={<SingleEvent />} />
+        <Route path="/ShareEvent/:eventId" element={<ShareEvent />} />
+        <Route path="/SingleEvent/:token" element={<SingleEvent />} />
         {/* Define additional pages/routes */}
       </Routes>
     </Router>
-  </React.StrictMode>
+   </React.StrictMode>
 );

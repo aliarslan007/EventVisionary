@@ -161,7 +161,7 @@ const Events = () => {
                                     <p>{event.Event_Name}</p>
                                     <p>{formatDate(event.start_date)} • {event.start_time}</p>
                                     <p>{venueNames[event.id]}</p>
-                                    <a href={`/SingleEvent/${event.id}`} className="btn sm">Sell tickets</a>
+                                    <a href={`/SingleEvent/${event.unique_token}`} className="btn sm">Sell tickets</a>
                                 </div>
                             </div>
                         ))}

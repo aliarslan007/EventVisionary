@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaBalanceScaleRight, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { FaXmark } from 'react-icons/fa6';
 import "./index.css";
 import { CiCirclePlus } from 'react-icons/ci';
 // import Link from 'next/link';
 import ArchivedBack from '../ArchivedBack/ArchivedBack';
 import { v4 as uuidv4 } from 'uuid';
-
+import { useNavigate } from 'react-router-dom';
 
 const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventId=null, eventStartDate="", eventEndDate="" }) => {
+    const navigate = useNavigate();
     const [dsVisible, setDsVisible] = useState(true);
     const [formSecVisible, setFormSecVisible] = useState(false);
     const [iconDirection, setIconDirection] = useState('down');
@@ -21,8 +22,75 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
     const [eventSaleEndDate, setEventSaleEndDate] = useState('');
     const [eventSaleEndTime, setEventSaleEndTime] = useState('');
     const [mainLevelsVisibility, setMainLevelsVisibility] = useState({});
-    const [mainLevelData, setMainLevelData] = useState([]);
-    const [subLevelData, setSubLevelData] = useState({});
+    const [isTicketGenerate, setIsTicketGenerate] = useState(false);
+    const [startImmediately, setStartImmediately] = useState(false);
+    const [endImmediately, setEndImmediately] = useState(false);
+    const [mainLevelData, setMainLevelData] = useState({
+        1: {
+        box_office: false,
+      },
+    });
+    const [subLevelData, setSubLevelData] = useState({
+        1: {
+            1: {
+                box_office: false,
+            },
+        },
+    });
+    const [ticketTypes, setTicketTypes] = useState([]);
+    const [tableOfValue, setTableOfValue] = useState(6);
+    const [tableOfCategory, setTableOfCategory] = useState('default');
+    const [isFreeEvent, setIsFreeEvent] = useState(false);
+    const [isReserveEvent, setIsReserveEvent] = useState(false);
+    const [isUseExistingChart, setIsUseExistingChart] = useState(false);
+    const [cloneChartName, setCloneChartName] = useState('');
+    const [chartKeyVenue, setChartKeyVenue] = useState('');
+    
+
+
+    const handleTableOfCategory = (e) => {
+        setTableOfCategory(e.target.value);
+    }
+    const handleTableOfValue = (e) => {
+        setTableOfValue(e.target.value);
+    }
+
+    const handleGenerateButtonClick = () => {
+        console.log("tableOfCategory ", tableOfCategory);
+        if (tableOfCategory === 'default') {
+            alert('Please select a ticket type');
+        } else {
+            let price =0;
+            Object.values(mainLevelData).forEach(mainLevelDa => {
+                if (mainLevelDa.ticket_type.includes(tableOfCategory)){
+                    price = mainLevelDa.price;
+                    return true;
+                }
+            });
+            console.log('Ticket Type:', tableOfCategory);
+            console.log('Price:', price);
+            console.log('Table of Value:', tableOfValue);
+            const nameNew = tableOfCategory+" tabale of "+tableOfValue;
+            console.log('nameNew :', nameNew);
+            
+            // generate new mainLevel
+            const lastMainLevelId = mainLevels.length > 0 ? mainLevels[mainLevels.length - 1].id : 0;
+            const newMainLevel = { id: lastMainLevelId + 1, subLevels: [{ id: 1 }], isSubLevelsVisible: false };
+            setMainLevels([...mainLevels, newMainLevel]);
+            // generate new mainLevelData
+            const updatedMainLevelData = { ...mainLevelData };
+            updatedMainLevelData[newMainLevel.id] = {};
+
+            updatedMainLevelData[newMainLevel.id] = {
+                ...updatedMainLevelData[newMainLevel.id],
+                ticket_type: tableOfCategory+" table of "+String(tableOfValue),
+                price : price*tableOfValue,
+                quantity : "unlimited",
+                box_office: false
+                };
+            setMainLevelData(updatedMainLevelData);
+        }
+    };
 
     const handleEventSaleStartTimeChange = (e) => {
         setEventSaleStartTime(e.target.value);
@@ -95,8 +163,9 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
     };
 
     const [mainLevels, setMainLevels] = useState([
-        { id: 1, subLevels: [{ id: 1 }], isSubLevelsVisible: true },
+        { id: 1, subLevels: [{ id: 1 }], isSubLevelsVisible: false },
       ]);
+
     const handleAbsorbsServiceFeesChange = () => {
         setAbsorbsServiceFees(!absorbsServiceFees);
     };
@@ -109,16 +178,20 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
         setSalesTax(e.target.value);
     };
 
-    // const toggleVisibility = () => {
-    //     setDsVisible(!dsVisible);
-    //     setFormSecVisible(!formSecVisible);
-    //     setIconDirection(iconDirection === 'down' ? 'up' : 'down');
-    // };
     const toggleVisibility = (mainLevelId) => {
         setMainLevelsVisibility((prevVisibility) => ({
           ...prevVisibility,
           [mainLevelId]: !prevVisibility[mainLevelId],
         }));
+
+        setMainLevels(prevMainLevels => {
+            return prevMainLevels.map(mainLevel => {
+              if (mainLevel.id === mainLevelId) {
+                return { ...mainLevel, isSubLevelsVisible:  !mainLevel.isSubLevelsVisible  };
+              }
+              return mainLevel;
+            });
+          });
       };
 
 
@@ -128,78 +201,217 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
 
     const handleCheckboxChange = () => {
         setShowTaxInputs(!showTaxInputs);
+        setEnableSalesTax(!enableSalesTax);
     };
-
-    const [startImmediately, setStartImmediately] = useState(false);
-    const [endImmediately, setEndImmediately] = useState(false);
+    
 
     const handleStartToggle = () => {
         setStartImmediately(!startImmediately);
+        if(!startImmediately){
+            const now = new Date();
+            const date = now.toISOString().slice(0, 10); // Extract date (YYYY-MM-DD)
+            const timeOptions = { hour12: false, hour: '2-digit', minute: '2-digit' };
+            const time = now.toLocaleTimeString([], timeOptions);
+            setEventSaleStartDate(date);
+            setEventSaleStartTime(time);
+        }
         setEndImmediately(false); // Deactivate the other button
     };
 
-    const handleEndToggle = () => {
-        setEndImmediately(!endImmediately);
-        setStartImmediately(false); // Deactivate the other button
-    };
     const [showForm, setShowForm] = useState(false);
 
     const handleCheckboxChange3 = (e) => {
-        setShowForm(e.target.checked);
+        
+        // Check if any input fields are empty
+        const emptyFields = areInputFieldsEmpty();
+        console.log("empty fields are ", emptyFields)
+        if (emptyFields) {
+            alert('Please fill in all input fields before proceeding.');
+        }
+        else{
+            setIsTicketGenerate(!isTicketGenerate);
+            setShowForm(e.target.checked);
+        }
     };
 
     const handleMainLevelInputChange = (mainLevelId, fieldName, value) => {
+        console.log(" fieldName is ", fieldName);
+        console.log(" value of field is ", value);
+        console.log(" mainLevelId ", mainLevelId);
         const updatedMainLevelData = { ...mainLevelData };
+        console.log("updatedMainLevelData ", updatedMainLevelData);
+
+        console.log("inside if ");
+        // if (!updatedMainLevelData.hasOwnProperty(mainLevelId)) {
+        //     updatedMainLevelData[mainLevelId] = {};
+        // }
+        
         updatedMainLevelData[mainLevelId] = {
-          ...updatedMainLevelData[mainLevelId],
-          [fieldName]: value,
-        };
+            ...updatedMainLevelData[mainLevelId],
+            [fieldName]: value,
+            };
+        console.log("new updatedMainLevelData ", updatedMainLevelData);
+        if (!updatedMainLevelData[mainLevelId].hasOwnProperty('box_office')) {
+            updatedMainLevelData[mainLevelId] = {
+                ...updatedMainLevelData[mainLevelId],
+                box_office: false
+                };
+        }
         setMainLevelData(updatedMainLevelData);
+        
       };
+
       
       const handleSubLevelInputChange = (mainLevelId, subLevelId, fieldName, value) => {
-        const updatedSubLevelData = { ...subLevelData };
+        const updatedSubLevelData = { ...subLevelData };        
         updatedSubLevelData[mainLevelId] = updatedSubLevelData[mainLevelId] || {};
+        
         updatedSubLevelData[mainLevelId][subLevelId] = {
           ...updatedSubLevelData[mainLevelId][subLevelId],
           [fieldName]: value,
         };
+        console.log(" updatedSubLevelData[mainLevelId] ", updatedSubLevelData[mainLevelId]);
+        console.log(" updatedSubLevelData[mainLevelId][subLevelId] ", updatedSubLevelData[mainLevelId]?.[subLevelId]);
+        console.log(" updatedSubLevelData[mainLevelId][subLevelId] ", updatedSubLevelData[mainLevelId][subLevelId].price);
+        console.log(" updatedSubLevelData[mainLevelId][subLevelId] ", updatedSubLevelData[mainLevelId][subLevelId].box_office);
+        if (!updatedSubLevelData[mainLevelId][subLevelId].hasOwnProperty('box_office')) {
+            // Add the box_office field with a default value of false
+            updatedSubLevelData[mainLevelId][subLevelId] = {
+                ...updatedSubLevelData[mainLevelId][subLevelId],
+                box_office: false,
+            };        
+        }
         setSubLevelData(updatedSubLevelData);
       };
-      
-    const handleNextButtonClick = () => {
+    
+    const areInputFieldsEmpty = () => {
+        console.log("inside validation ");
+        let isEmpty = false; // Flag variable to track if empty fields are found
+
+        // Check main levels
+        mainLevels.forEach(mainLevel => {
+            const mainLevelD = mainLevelData[mainLevel.id];
+            if (mainLevel.isSubLevelsVisible)
+            {   // Check sub levels
+                mainLevel.subLevels.forEach(subLevel => {
+                    const subLevelD = subLevelData[mainLevel.id]?.[subLevel.id];
+                    for (const field in subLevelD) {
+                        if ((!isFreeEvent && !subLevelD.hasOwnProperty('price'))|| !subLevelD.hasOwnProperty('quantity') || !subLevelD.hasOwnProperty('ticket_type') || !subLevelD.hasOwnProperty('box_office')) {
+                            // alert("Please fill all fields for main level");
+                            isEmpty = true; 
+                            return;
+                        }
+
+                        if (subLevelD[field] === "" || subLevelD[field] === " " || subLevelD[field] === null) {
+                            // alert("Please fill all fields");
+                            isEmpty = true; // Set flag to true
+                            return; // Exit the loop
+                        }
+                    }
+                });
+
+            }
+            else{
+                        // Check if mainLevelData has all required fields
+                if ((!isFreeEvent && !mainLevelD.hasOwnProperty('price')) || !mainLevelD.hasOwnProperty('quantity') || !mainLevelD.hasOwnProperty('ticket_type') || !mainLevelD.hasOwnProperty('box_office')) {
+                    // alert("Please fill all fields for main level");
+                    isEmpty = true; 
+                    return;
+                }
+                for (const field in mainLevelD) {
+                    if (mainLevelD[field] === "" || mainLevelD[field] === " ") {
+                        // alert("Please fill all fields");
+                        isEmpty = true; // Set flag to true
+                        return; // Exit the loop
+                    }
+                    if (field.includes("quantity")){
+                        const quantityValue = (mainLevelD[field]);
+                        
+                        if (quantityValue > 0 || quantityValue === "unlimited") {
+                            // Handle negative values
+                            // continue
+                        } 
+                        else{
+                            alert(`${field} must be a number. ${quantityValue}`);
+                            isEmpty = true;
+                            return;
+                        }
+                    }
+                }  
+            }
+        });
+        
+        console.log(" after mainLevels inside validation : ", isEmpty);
+        if (!isFreeEvent){
+            if (enableSalesTax && (!salesTax || isNaN(salesTax) || salesTax < 1 || salesTax===null)) {
+                isEmpty = true;
+            }
+        }   
+        console.log(" enableSalesTax : ", enableSalesTax);
+        console.log(" after enableSalesTax inside validation : ", isEmpty);
+        return isEmpty; // Return flag value
+    };
+    
+
+    const handleNextButtonClick  = async () => {
     // Display or log mainLevel data
+    const emptyFields = areInputFieldsEmpty();
+    console.log("empty fields are ", emptyFields)
+    if (emptyFields) {
+        alert('Please fill in all input fields before proceeding.');
+    }
+    else{
+        
     console.log("Main Level Data:");
-    mainLevels.forEach(mainLevel => {
-        console.log(`Main Level ID: ${mainLevel.id}`);
-        console.log("Main Level Input Data:", mainLevelData[mainLevel.id]);
-        console.log("Sub Level Input Data:");
-        mainLevel.subLevels.forEach(subLevel => {
-        console.log(`  Sub Level ID: ${subLevel.id}`);
-        console.log("  Sub Level Input Data:", subLevelData[mainLevel.id]?.[subLevel.id]);
-        });
-        });
-      };
+    
+    await sendDataToAPI();
+    }};   
 
     const handleAddMainLevel = () => {
         console.log("inside add main ");
         // setMainLevels((prevMainLevels) => prevMainLevels + 1);
         const lastMainLevelId = mainLevels.length > 0 ? mainLevels[mainLevels.length - 1].id : 0;
         const newMainLevel = { id: lastMainLevelId + 1, subLevels: [{ id: 1 }], isSubLevelsVisible: false };
+        
         setMainLevels([...mainLevels, newMainLevel]);
+        const updatedMainLevelData = { ...mainLevelData };
+        updatedMainLevelData[newMainLevel.id] = {};
+        setMainLevelData(updatedMainLevelData);
+
       };
 
     
     const handleRemoveMainLevel  = (mainId) => {
         console.log("Removing main level at mainId:", mainId);
         if (mainLevels.length > 1) {
+            removeMainLevelData(mainId);
         //   setMainLevels((prevMainLevels) => prevMainLevels - 1);
         const updatedMainLevels = mainLevels.filter(level => level.id !== mainId);
         setMainLevels(updatedMainLevels);
-
+        
         }
       };
 
+
+    const removeMainLevelData = (mainLevelIdToRemove) => {
+        // Filter out the main level data with the given ID
+        console.log("Removing mainLevelData at mainId:", mainLevelIdToRemove);
+
+        const updatedMainLevelData = { ...mainLevelData };
+        
+        console.log("before mainLevelData", updatedMainLevelData);
+        // Check if the main level with the given ID exists
+        if (updatedMainLevelData.hasOwnProperty(mainLevelIdToRemove)) {
+            // Delete the main level with the given ID
+            delete updatedMainLevelData[mainLevelIdToRemove];
+
+            console.log("filteredMainLevelData", updatedMainLevelData);
+            // Update the state with the modified mainLevelData
+            setMainLevelData(updatedMainLevelData);
+        } else {
+            console.log(`Main level with ID ${mainLevelIdToRemove} does not exist.`);
+        }
+    };
 
 
     const handleAddSubLevel = (mainId) => {
@@ -223,6 +435,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
             return prevMainLevels.map(mainLevel => {
                 if (mainLevel.id === mainId) {
                     if (mainLevel.subLevels.length > 1) {
+                        removesubLevelData(mainId, subId);
                     const updatedSubLevels = mainLevel.subLevels.filter(subLevel => subLevel.id !== subId);
                     return { ...mainLevel, subLevels: updatedSubLevels };
                     }
@@ -233,6 +446,540 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
         });
     };
 
+    const removesubLevelData = (mainLevelIdToRemove, subId) => {
+        // Filter out the main level data with the given ID
+        console.log("Removing subLevelData at mainId:", subId);
+
+        const updatedsubLevelData = { ...subLevelData };
+        
+        console.log("before updatedsubLevelData", updatedsubLevelData);
+        // Check if the main level with the given ID exists
+        if (updatedsubLevelData[mainLevelIdToRemove].hasOwnProperty(subId)) {
+            // Delete the main level with the given ID
+            delete updatedsubLevelData[mainLevelIdToRemove][subId];
+
+            console.log("filteredSubLevelData", updatedsubLevelData[mainLevelIdToRemove]);
+            // Update the state with the modified mainLevelData
+            setMainLevelData(updatedsubLevelData);
+        } else {
+            console.log(`Main level with ID ${mainLevelIdToRemove} does not exist.`);
+        }
+    };
+
+    // Extracting unique ticket types from mainLevels
+    useEffect(() => {
+        const types = [];
+        Object.values(mainLevelData).forEach(mainLevelDa => {
+            types.push(mainLevelDa.ticket_type);
+        });
+
+        setTicketTypes(types);
+    }, [mainLevelData]);
+
+
+    useEffect(() => {
+    const fetchEventData= async () => {
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) {
+            throw new Error('Authentication token not found');
+        }
+        const authUserId = localStorage.getItem('authUserId');
+        console.log("token is ", authToken);
+        console.log("authUserId is ", authUserId);
+
+        if (!authUserId) {
+            throw new Error('Authentication authUserId not found');
+        }
+        // fetch event with eventId
+        const EventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+        });
+
+        // Check if the request was successful (status code 2xx)
+        if (EventResponse.ok) {
+            const eventResponseData = await EventResponse.json(); // Parse the response JSON
+            setIsFreeEvent(eventResponseData.is_event_free);
+            setIsReserveEvent(eventResponseData.is_seating_reserved);
+            setIsUseExistingChart(eventResponseData.use_existing_chart);
+            setCloneChartName(eventResponseData.clone_chart_name);
+            const venueId = eventResponseData.Venue_name;
+
+            try{
+                // fetch event with eventId
+            const venueResponse = await fetch(`http://127.0.0.1:8000/api/venues/${venueId}/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            if (venueResponse.ok) {
+                const venueResponseData = await venueResponse.json();
+                setChartKeyVenue(venueResponseData.chat_id);
+            }
+            else{
+                throw new Error('venue Response unsuccessful ');
+            }
+        
+            }
+            catch(error){
+                console.log("error occured : ", error)
+            }
+            console.log("free event status is", setIsFreeEvent);
+            console.log("eventResponseData.is_event_free is", eventResponseData.is_event_free);
+            console.log('event retrieving successfully:', eventResponseData);
+            // Optionally, you can return the response data or perform other actions here
+        } else {
+            console.log("event retrieving error ", EventResponse.status)
+        }    
+    }
+    fetchEventData();
+    }, [eventId]);
+
+
+
+    const sendDataToAPI= async () => {
+        try {
+            let process = true;
+            let responseData = null
+            let isMultiPricing = false
+            let pricing = [];
+            let multi_price = [];
+            let isFreeEventVar =false;
+            const authToken = localStorage.getItem('authToken');
+                if (!authToken) {
+                    throw new Error('Authentication token not found');
+            }
+            const authUserId = localStorage.getItem('authUserId');
+            console.log("token is ", authToken);
+            console.log("authUserId is ", authUserId);
+
+            if (!authUserId) {
+                throw new Error('Authentication authUserId not found');
+            }
+            
+            const requestBody = JSON.stringify({
+                is_event_tax_enable : enableSalesTax,
+                event_tax : salesTax,
+                event_sale_start_date : eventSaleStartDate,
+                event_sale_start_time : eventSaleStartTime,
+                event_sale_end_date : eventSaleEndDate,
+                event_sale_end_time : eventSaleEndTime,
+                is_event_start_immediately : startImmediately,
+                absorb_fee : absorbsServiceFees
+            });
+            console.log("body is ", requestBody);
+            console.log("eventId is ", eventId);
+            // fetch event with eventId
+            const EventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: requestBody
+            });
+    
+            // Check if the request was successful (status code 2xx)
+            if (EventResponse.ok) {
+                responseData = await EventResponse.json(); // Parse the response JSON
+                isFreeEventVar = responseData.is_event_free;
+                console.log("free event status is", isFreeEventVar);
+                console.log('event patched successfully:', responseData);
+                process = true;
+                // Optionally, you can return the response data or perform other actions here
+            } else {
+                process = false;
+            }
+
+            // create categories through API Calls
+            if (process){
+
+                let categoryId=""
+                let category_list = []
+            for (const mainLevel of mainLevels) {
+                let priceVar = 0;
+                if (mainLevel.isSubLevelsVisible){
+                    console.log("Main Level Input Data:", mainLevelData[mainLevel.id].ticket_type);
+                    console.log("Sub Level Input Data:");
+
+                    const requestBody = JSON.stringify({
+                        name : mainLevelData[mainLevel.id].ticket_type,
+                        // price : parseInt( mainLevelData[mainLevel.id].price),
+                        // quantity : mainLevelData[mainLevel.id].quantity,
+                        // is_box_office : mainLevelData[mainLevel.id].box_office,
+                        event : responseData.id,
+                        venue_name : responseData.Venue_name,
+                    });
+                    console.log("body is ", requestBody);
+                    console.log("eventId is ", eventId);
+                    // fetch event with eventId
+                    const CategoryResponse = await fetch(`http://127.0.0.1:8000/api/categories/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${authToken}`
+                    },
+                    body: requestBody
+                    });
+            
+                    // Check if the request was successful (status code 2xx)
+                    if (CategoryResponse.ok) {
+                        const responseData = await CategoryResponse.json(); // Parse the response JSON
+                        categoryId = responseData.id;
+                        process = true;
+                        
+                        console.log("in ok  category response ", CategoryResponse);
+                        // Optionally, you can return the response data or perform other actions here
+                    } else {
+                        console.error(`Error: ${CategoryResponse.status}`);
+                        const responseBody = await CategoryResponse.text();
+                        // event.target.submit();
+                        console.log('authToken', authToken);
+                        console.log('Form submitted with data:', requestBody);
+                        console.error(`Response body: ${responseBody}`);
+                        process = false;
+                    }
+                if (process){
+                isMultiPricing = false
+                for (const subLevel of mainLevel.subLevels) {
+
+                    // calling api for creating subcategories
+                    // ------------------
+                    // <<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>
+                    const requestBody = JSON.stringify({
+                        name : subLevelData[mainLevel.id][subLevel.id].ticket_type,
+                        price : parseInt(subLevelData[mainLevel.id][subLevel.id].price),
+                        quantity : subLevelData[mainLevel.id][subLevel.id].quantity,
+                        is_box_office : subLevelData[mainLevel.id][subLevel.id].box_office,
+                        event : responseData.id,
+                        VenueChartCategory : categoryId,
+                        venue_name : responseData.Venue_name,
+                    });
+                    // fetch event with eventId
+                    const subCategoryResponse = await fetch(`http://127.0.0.1:8000/api/subcategories/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${authToken}`
+                    },
+                    body: requestBody
+                    });
+            
+                    // Check if the request was successful (status code 2xx)
+                    if (subCategoryResponse.ok) {
+                        const responseData = await subCategoryResponse.json(); // Parse the response JSON
+                        const subCategory = responseData.id;
+                        console.log("in ok sub category response ", subCategoryResponse);
+                        process = true;
+
+                        isMultiPricing = true
+                        if (!isFreeEventVar){
+                        priceVar =parseInt(subLevelData[mainLevel.id][subLevel.id].price);
+
+                        }
+                        multi_price.push({
+                        "ticketType": subLevelData[mainLevel.id][subLevel.id].ticket_type,
+                        "price": priceVar
+                        })
+                        
+                        // Optionally, you can return the response data or perform other actions here
+                    } else {
+                        console.error(`Error: ${subCategoryResponse.status}`);
+                        const responseBody = await subCategoryResponse.text();
+                        // event.target.submit();
+                        console.log('authToken', authToken);
+                        console.log('Form submitted with data:', requestBody);
+                        console.error(`Response body: ${responseBody}`);
+                        process = false;
+                        return;
+                    }
+                    
+                }; // sublevel loop ends here
+
+                if (process){
+                    
+                    pricing.push({
+                        "category": mainLevel.id,
+                        "ticketTypes": multi_price,
+                    });
+                }
+                else{
+                    return;
+                }
+                    }// multipricing top if ends here 
+                }
+                else{
+                    // when no multipricing
+                    const requestBody = JSON.stringify({
+                        name : mainLevelData[mainLevel.id].ticket_type,
+                        price : parseInt(mainLevelData[mainLevel.id].price),
+                        quantity : mainLevelData[mainLevel.id].quantity,
+                        is_box_office : mainLevelData[mainLevel.id].box_office,
+                        event : responseData.id,
+                        venue_name : responseData.Venue_name,
+                    });
+                    console.log("body is ", requestBody);
+                    console.log("eventId is ", eventId);
+                    // fetch event with eventId
+                    const CategoryResponse = await fetch(`http://127.0.0.1:8000/api/categories/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${authToken}`
+                    },
+                    body: requestBody
+                    });
+            
+                    // Check if the request was successful (status code 2xx)
+                    if (CategoryResponse.ok) {
+                        const responseData = await CategoryResponse.json(); // Parse the response JSON
+                        console.log('categories saved successfully:', responseData);
+                        categoryId = responseData.id;
+                        process = true;
+                        if (!isFreeEventVar){
+                            priceVar = parseInt(mainLevelData[mainLevel.id].price)
+                        }
+                        pricing.push({
+                            "category": mainLevel.id,
+                            "price": priceVar
+                        });
+                        // Optionally, you can return the response data or perform other actions here
+                    } else {
+                        console.error(`Error: ${CategoryResponse.status}`);
+                        const responseBody = await CategoryResponse.text();
+                        // event.target.submit();
+                        console.log('authToken', authToken);
+                        console.log('Form submitted with data:', requestBody);
+                        console.error(`Response body: ${responseBody}`);
+
+                        process = false;
+                        return;
+                    }
+                }
+                const temp = {
+                    'key': mainLevel.id,
+                    'label': mainLevelData[mainLevel.id].ticket_type
+                }
+                category_list.push(temp)
+
+            }; //Mainlevel loop ends here
+            // here pricing will be append
+            console.log("pricing array is \n", pricing);
+            for (const pricingRow of pricing){
+
+
+                const requestBody = JSON.stringify({
+                    event : responseData.id,
+                    pricing_data: pricingRow
+                });
+                console.log("body is ", requestBody);
+                console.log("eventId is ", eventId);
+                // fetch event with eventId
+                const PricingResponse = await fetch(`http://127.0.0.1:8000/api/pricing/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: requestBody
+                });
+        
+                // Check if the request was successful (status code 2xx)
+                if (PricingResponse.ok) {
+                    const PricingResponseData = await PricingResponse.json(); // Parse the response JSON
+                    console.log('event PricingResponseData successfully:', PricingResponseData);
+                    process = true;
+                    // Optionally, you can return the response data or perform other actions here
+                } else {
+                    console.error(`Error: ${PricingResponse.status}`);
+                    const pricingResponseBody = await PricingResponse.text();
+                    // event.target.submit();
+                    console.log('authToken', authToken);
+                    console.log('Form submitted with data:', requestBody);
+                    console.error(`Response body: ${pricingResponseBody}`);
+                    process = false;
+                    return;
+                }
+
+
+            } //loop for pricing array
+            //  pricing ends here
+            if(process){
+                alert("data saved successfully ");
+                
+            // get chart and event Ids 
+            if (isReserveEvent){
+                try {
+                    let chartKey = ""
+                    let eventKey = ""
+                    const authToken = localStorage.getItem('authToken');
+                    if (!authToken) {
+                        throw new Error('Authentication token not found');
+                        
+                    }
+                    
+                    try{
+                        console.log("chart key is : ", chartKeyVenue)
+                        if (chartKeyVenue.includes("NONE")){
+
+                        
+                            const requestBody = JSON.stringify({
+                                name : "No Name",
+                                category_list: category_list
+                            });
+                            console.log("body of createchart api is : \n", requestBody);
+                            // fetcb venue data
+                            const createChartResponse = await fetch(`http://127.0.0.1:8000/api/createchart/`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Token ${authToken}`
+                                },
+                                body: requestBody
+                            });
+            
+                            if (!createChartResponse.ok) {
+                                process = false
+                                console.log("create chart error is : ", createChartResponse.status)
+                                throw new Error('Failed to fetch createchart data');
+                            }
+                            else{
+                                const createChartData = await createChartResponse.json();
+                                chartKey = createChartData.chart_key;
+                                console.log("chart key fro create chart api is :\n", chartKey);
+                                process = true
+                            }
+                        }
+                        // ***********************************
+                        // ********************************
+                        //  now creating event at seatsio api
+                        // **********************************
+                        // ********************************
+                        {
+                            const requestBody2 = JSON.stringify({
+                                chart_key : chartKey,
+                                name: responseData.Event_Name
+                            });
+                            // fetcb venue data
+                            const responseEventSeatsIO = await fetch(`http://127.0.0.1:8000/api/createseatsioevent/`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Token ${authToken}`
+                                },
+                                body: requestBody2
+                            });
+        
+                            if (!responseEventSeatsIO.ok) {
+                                process = false
+                                throw new Error('Failed to fetch venue data');
+                            }
+                            else{
+                                const seatsIOEventData = await responseEventSeatsIO.json();
+                                eventKey = seatsIOEventData.event_id;
+                                process = true
+                            }
+
+                            // now update chart key in venue model 
+                            const requestBody3 = JSON.stringify({
+                                chat_id : chartKey
+                            });
+                            // fetch venue data
+                            // ******************
+                            // ((((((((()))))))))
+                            // ******************
+                            const venueiD = responseData.Venue_name
+                            const responseVenueUpdate = await fetch(`http://127.0.0.1:8000/api/venues/${venueiD}/`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Token ${authToken}`
+                                },
+                                body: requestBody3
+                            });
+        
+                            if (!responseVenueUpdate.ok) {
+                                process = false
+                                throw new Error('Failed to fetch venue data');
+                            }
+                            else{
+                                const responseVenueData = await responseEventSeatsIO.json();
+                                // eventKey = seatsIOEventData.event_id;
+                                process = true
+                            }
+        
+                        } 
+
+                    }
+                    catch(error){
+                        console.log("error is : ", error);
+                    }
+                    // update event with chart key and event_Id of seats io
+                    try{
+                        const requestBody = JSON.stringify({
+                            event_id : eventKey,
+                            chart_key : chartKey,
+                        });
+                        console.log("body is ", requestBody);
+                        console.log("eventId is ", eventId);
+                        // fetch event with eventId
+                        const EventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: requestBody
+                        });
+                
+                        // Check if the request was successful (status code 2xx)
+                        if (EventResponse.ok) {
+                            responseData = await EventResponse.json(); // Parse the response JSON
+                            isFreeEventVar = responseData.is_event_free;
+                            console.log("event status is", isFreeEventVar);
+                            console.log('event patched successfully:', responseData);
+                            process = true;
+                            
+                            navigate(`/PublishEvent/${eventId}`);
+                            // Optionally, you can return the response data or perform other actions here
+                        } else {
+                            process = false;
+                            throw new Error('Authentication token not found');
+                        }
+                    }
+                    catch(error){
+                        console.log("error occured : ", error);
+                    }
+                    
+                    
+                    
+                } catch (error) {
+                    console.error('Error fetching venue data:', error);
+                }
+            }
+            // if event is not reserved
+            else{
+                // event is not reserved, code here
+                navigate(`/ShareEvent/${eventId}`);
+
+            }
+            
+
+            }
+
+            }
+            
+            else{
+                alert("Error occured , please reload the page and try again ");
+            }
+
+        } catch (error) {
+            // Handle network errors or other exceptions
+            console.error('Error:', error.message);
+        }
+    
+    }// api main function ends here
+    
 
     return (
         <div>
@@ -241,13 +988,13 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                 {title && <h2 className='Archived_heading'>{title}</h2>}
                 <form action="Create_event" className="event_froml">
 
-                    <div className=" ticket_form">
+                <div className={`ticket_form parentDiv ${isTicketGenerate ? 'disabled_div' : ''}`}>
 
                         <div className="form_price_option">
                             <label className="switch">
                                 <input type="checkbox" 
                                 checked={absorbsServiceFees}
-                                onChange={handleAbsorbsServiceFeesChange}/>
+                                onChange={(e) => handleAbsorbsServiceFeesChange(e.target.checked)}/>
                                 <span className="slider round"></span>
                             </label>
                             <p className="ticket_fee_t">Customer absorbs service fees.</p>
@@ -260,7 +1007,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                                     <tr>
                                         <th>Del</th>
                                         <th>Ticket Type</th>
-                                        <th>Price</th>
+                                        {!isFreeEvent && <th>Price</th>}
                                         <th>QTY</th>
                                         <th>Box Office Only</th>
                                         <th>Multi-Level Pricing</th>
@@ -288,7 +1035,8 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
 
 
                                         <div className="ticket_type_Price">
-                                            <input type="text" 
+                                            <input type="number" 
+                                            style={{ display: isFreeEvent ? "none" : "block" }}
                                             value={mainLevelData[mainLev.id]?.price || ''}
                                             onChange={(e) => handleMainLevelInputChange(mainLev.id, 'price', e.target.value)}/>
                                         </div>
@@ -300,8 +1048,8 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                                         <div className={`ticket_type_only ${instantHideSwitch ? 'instant-hide' : ''}`}>
                                             <label className="switch">
                                                 <input type="checkbox" 
-                                                value={mainLevelData[mainLev.id]?.box_office || ''}
-                                                onChange={(e) => handleMainLevelInputChange(mainLev.id, 'box_office', e.target.value)} />
+                                                value={mainLevelData[mainLev.id]?.box_office || false}
+                                                onChange={(e) => handleMainLevelInputChange(mainLev.id, 'box_office', e.target.checked)} />
                                                 <span className="slider round"></span>
                                             </label>
                                         </div>
@@ -327,7 +1075,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                                             <tr>
                                                 <th>Del</th>
                                                 <th>Ticket Type</th>
-                                                <th>Price</th>
+                                                {!isFreeEvent && <th>Price</th>}
                                                 <th>QTY</th>
                                                 <th>Box Office Only</th>
                                             </tr>
@@ -348,13 +1096,14 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                                                         onChange={(e) => handleSubLevelInputChange(mainLev.id, subLev.id, 'ticket_type', e.target.value)}/>
                                                     </div>
                                                     <div className="ticket_type_Price">
-                                                        <input type="text"
+                                                        <input type="number"
+                                                        style={{ display: isFreeEvent ? "none" : "block" }}
                                                         value={subLevelData[mainLev.id]?.[subLev.id]?.price || ''}
                                                         onChange={(e) => handleSubLevelInputChange(mainLev.id, subLev.id, 'price', e.target.value)}
                                                      />
                                                     </div>
                                                     <div className="ticket_type_qty">
-                                                        <input type="text" 
+                                                        <input type="number" 
                                                         value={subLevelData[mainLev.id]?.[subLev.id]?.quantity || ''}
                                                         onChange={(e) => handleSubLevelInputChange(mainLev.id, subLev.id, 'quantity', e.target.value)}
                                                       />
@@ -362,8 +1111,8 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                                                     <div className="ticket_type_only">
                                                         <label className="switch">
                                                             <input type="checkbox" 
-                                                            value={subLevelData[mainLev.id]?.[subLev.id]?.box_office || ''}
-                                                            onChange={(e) => handleSubLevelInputChange(mainLev.id, subLev.id, 'box_office', e.target.value)}
+                                                            value={subLevelData[mainLev.id]?.[subLev.id]?.box_office || false}
+                                                            onChange={(e) => handleSubLevelInputChange(mainLev.id, subLev.id, 'box_office', e.target.checked)}
                                                         />
                                                             <span className="slider round"></span>
                                                         </label>
@@ -390,9 +1139,11 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
 
                         </div>
                         <div className="enable_sale_tax_section">
-                            <div className="tax_btn">
+                            <div className="tax_btn"
+                            style={{ display: isFreeEvent ? "none" : "block" }}
+                            >
                                 <label className="switch">
-                                    <input type="checkbox" id="Sales_tax" onChange={handleCheckboxChange} />
+                                    <input type="checkbox" id="Sales_tax" value={enableSalesTax} onChange={handleCheckboxChange} />
                                     <span className="slider round"></span>
                                 </label>
                                 <p>Enable Sales Tax?</p>
@@ -415,10 +1166,11 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                                         <p>When Should Ticket Sales Start?</p>
                                         <div className="start_tax_inputs">
                                             <input type="date" className="myInput2 white_txt"  
-                                            disabled={startImmediately} defaultValue={eventSaleStartDate} onBlur={handleEventSaleStartDateChange}
+                                            disabled={startImmediately} Value={eventSaleStartDate} onBlur={handleEventSaleStartDateChange}
                                              min={eventStartDate} max={eventEndDate}
                                             />
-                                            <input type="time" className="myInput2" disabled={startImmediately} />
+                                            <input type="time" className="myInput2 white_txt"
+                                             disabled={startImmediately} Value={eventSaleStartTime} onBlur={handleEventSaleStartTimeChange}/>
 
                                         </div>
                                     </div>
@@ -439,9 +1191,10 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                                         <p>When Should Ticket Sales End?</p>
                                         <div className="start_tax_inputs">
                                             <input type="date" className="myInput3 white_txt"
-                                             defaultValue={eventSaleEndDate} onBlur={handleEventSaleEndDateChange} min={eventStartDate} max={eventEndDate}
+                                             Value={eventSaleEndDate} onBlur={handleEventSaleEndDateChange} min={eventStartDate} max={eventEndDate}
                                              disabled={endImmediately} />
-                                            <input type="time" className="myInput3" disabled={endImmediately} />
+                                            <input type="time" className="myInput3 white_txt" 
+                                            disabled={endImmediately} Value={eventSaleEndTime} onBlur={handleEventSaleEndTimeChange}/>
 
                                         </div>
                                     </div>
@@ -465,28 +1218,37 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                             <p>Have Tables Bookable as a Whole?</p>
                             <div className="right_info_ticket">
                                 <label className="switch">
-                                    <input type="checkbox" onChange={handleCheckboxChange3} />
+                                    <input type="checkbox" onChange={handleCheckboxChange3} checked={isTicketGenerate} />
                                     <span className="slider round"></span>
                                 </label>
                                 <p>Generate ticket types for tables bookable as a whole</p>
 
                             </div>
                             {showForm && (
-                                <form action="" className="ticket_right_ins">
-                                    <div className="ticket_right_cat">
-                                        <label htmlFor="">Category</label>
-                                        <input type="text" />
+                                <div action="" className="ticket_right_ins">
+                                    <div className="ticket_right_cat display_flex">
+                                        <label htmlFor="" className='align_centre'>Category
+                                        </label>
+                                        {/* <input type="text" /> */}
+                                        <div className='menus_wapper'>
+                                        <select className='new_menu' onClick={handleTableOfCategory}>
+                                            <option value="default">Select Ticket Type</option>
+                                            {ticketTypes.map((type, index) => (
+                                                <option key={index} value={type}>{type}</option>
+                                            ))}
+                                        </select>
+                                        </div>
                                     </div>
 
-                                    <div className="ticket_right_cat">
-                                        <label htmlFor="">Table of</label>
-                                        <input type="text" />
+                                    <div className="ticket_right_cat display_flex">
+                                        <label htmlFor="" className='align_centre'>Table of</label>
+                                        <input type="text" defaultValue={tableOfValue} onChange={handleTableOfValue} className='width_80 yellow_txt'/>
                                     </div>
                                     <div>
 
-                                        <button type="button" className="right_btn">Generate</button>
+                                        <button type="button" className="right_btn" onClick={handleGenerateButtonClick}>Generate</button>
                                     </div>
-                                </form>
+                                </div>
                             )}
                         </div>
                         <div className="next_btn2">

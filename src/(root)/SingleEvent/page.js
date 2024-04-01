@@ -22,10 +22,11 @@ const SingleEvent = () => {
     const [paymentOption, setPaymentOption] = useState('Card'); // 'Card' or 'Cash'
     const [count, setCount] = useState(0);
     const [isOverlayOpen, setIsOverlayOpen] = useState(false);
-    const { eventId } = useParams();
-
-    
+    const { token } = useParams(); 
+    const [holdToken, setHoldToken] = useState('');
+    const [mainLevels, setMainLevels] = useState([]);
     const [event, setEvent] = useState([]);
+    const [eventImageUrl, setEventImageUrl] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [venueId, setVenueId] = useState([]);
@@ -33,6 +34,50 @@ const SingleEvent = () => {
     const [org, setOrg] = useState([]);
     const [eventPriceRange, setEventPriceRange] = useState([]);
 
+    const handleHoldTokenChange = (newToken) => {
+        setHoldToken(newToken);
+    };
+
+
+    const handleAddMainLevel = (label, seat, table, price, full_label) => {
+        
+        console.log("mainLevels from main :", mainLevels);
+        const newMainLevel = { 
+            // id: lastMainLevelId + 1, 
+            label, 
+            seat, 
+            table, 
+            price, 
+            full_label 
+        };
+        console.log("Updated mainLevels:", newMainLevel);
+        
+        setMainLevels(prevMainLevels=>[...prevMainLevels, newMainLevel]);
+    };
+
+
+    const handleRemoveMainLevelByLabel  = (full_label) => {
+        // alert("it is in remove function");
+        console.log("Removing main level  ::", full_label);
+        console.log("mainLevels:", mainLevels);
+
+        if (mainLevels.length > 0) {
+            alert("inside if statement ")
+            setMainLevels(prevMainLevels => {
+                // Filter out the main level with the provided full_label
+                const updatedMainLevels = prevMainLevels.filter(level => level.full_label !== full_label);
+                console.log("Updated mainLevels:", updatedMainLevels);
+                return updatedMainLevels;
+            });
+            releaseSeatsIoObject(full_label);
+        
+        }
+        else{
+            alert("main level is 0");
+        }
+      };
+    
+    
     const handlePaymentChange = (event) => {
         setPaymentOption(event.target.value);
     };
@@ -66,20 +111,55 @@ const SingleEvent = () => {
                 if (!authToken) {
                 throw new Error('Authentication token not found');
                 }
-                // Fetch event data
-                const eventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
-                    headers: {
-                        Authorization: `Token ${authToken}`
-                    }
+
+                const requestBody = JSON.stringify({
+                    unique_token : token,
                 });
+                // Fetch event data
+                console.log("Before api call");
+
+                const eventResponse = await fetch(`http://3.239.214.39:8080/api/eventofuniquetoken/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${authToken}`
+                    },
+                    body: requestBody
+                });
+                console.log("after api call");
                 if (!eventResponse.ok) {
+                    console.log("inside error api call");
                     throw new Error('Failed to fetch event data');
                 }
                 const eventData = await eventResponse.json();
-                setEvent(eventData);
+                console.log("eventData api call", eventData);
+
+                const newEvent = eventData.event;
+
+
+                // const baseURL = window.location.origin; // Your base URL
+                const baseURL = "http://127.0.0.1:8000"
+                let imageURL = newEvent.Event_image;
+                console.log("1 : imageURL: ", imageURL);
+                if (imageURL.startsWith('/images')) {
+                    
+                    console.log("2 ");
+                    
+                    imageURL = `${baseURL}${imageURL}`;
+                    console.log("3 updated imageURL : ", imageURL);
+                    setEventImageUrl(imageURL);
+                }
+                else{
+                    
+                    console.log("in else");
+                    setEventImageUrl(eventData.event.Event_image);
+
+                }
+                console.log("newEvent ", newEvent);
+                setEvent(eventData.event);
     
                 // Extract venueId from event data
-                const venueId = eventData.Venue_name;
+                const venueId = eventData.event.Venue_name;
     
                 // Fetch venue data using the extracted venueId
                 const venueResponse = await fetch(`http://127.0.0.1:8000/api/venues/${venueId}/`, {
@@ -104,7 +184,7 @@ const SingleEvent = () => {
                         'Content-Type': 'application/json',
                         'Authorization': `Token ${authToken}`
                     },
-                    body: JSON.stringify({ event_id: eventId })
+                    body: JSON.stringify({ event_id: (eventData.event.id) })
                  });
                  if (!eventPriceResponse.ok) {
                      throw new Error('Failed to fetch venue data');
@@ -114,7 +194,8 @@ const SingleEvent = () => {
 
 
                  // Extract venueId from event data
-                 const orgId = eventData.user;
+                 const orgId = eventData.event.user;
+                 console.log("org id is", orgId);
     
                  // Fetch venue data using the extracted venueId
                  const orgResponse = await fetch(`http://127.0.0.1:8000/api/users/${orgId}/`, {
@@ -123,12 +204,13 @@ const SingleEvent = () => {
                      }
                  });
                  if (!orgResponse.ok) {
+
                      throw new Error('Failed to fetch venue data');
                  }
                  const orgData = await orgResponse.json();
+                 console.log("orgData  is", orgData);
                  setOrg(orgData);
- 
-            
+
 
             } catch (error) {
                 setError(error);
@@ -139,7 +221,51 @@ const SingleEvent = () => {
     
         // Call the fetchData function
         fetchData();
-    }, [eventId]); // Include eventId in the dependency array to trigger the effect when it changes
+    }, [token]); // Include eventId in the dependency array to trigger the effect when it changes
+    
+
+    const releaseSeatsIoObject= async (label) => {
+        try{
+            const authToken = localStorage.getItem('authToken');
+
+                if (!authToken) {
+                throw new Error('Authentication token not found');
+                }
+
+                const requestBody = JSON.stringify({
+                    seat_label : label,
+                    event_key : event.event_id,
+                    hold_token: holdToken
+                });
+                // Fetch event data
+                console.log("check releaseeventseat Before api call : ", holdToken);
+                console.log("body is ",requestBody);
+
+                const eventResponse = await fetch(`http://127.0.0.1:8000/api/releaseeventseat/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${authToken}`
+                    },
+                    body: requestBody
+                });
+                console.log("after api call");
+                if (!eventResponse.ok) {
+                    console.log("eventResponse : ",eventResponse );
+                    throw new Error('Failed to fetch event data');
+                }
+                else{
+
+                }
+                const eventData = await eventResponse.json();
+                console.log("eventData api call", eventData);
+                
+        } catch (error) {
+            // Handle network errors or other exceptions
+            console.error('Error:', error.message);
+        }
+    }
+
     
 
     return (
@@ -148,7 +274,7 @@ const SingleEvent = () => {
             <div className='main_container'>
                 <div className='single_event_sec'>
                     <div className="single_event_upper">
-                        <img src={event.Event_image} alt='EventImg' className="single_event_img" />
+                        <img src={eventImageUrl} alt='EventImg' className="single_event_img" />
 
                     </div>
                     <div className="single_event_lower">
@@ -201,9 +327,10 @@ const SingleEvent = () => {
                                 {/* <p className="plus">18+</p> */}
                                 <p className="after_none">${eventPriceRange.minimum_price} - ${eventPriceRange.maximum_price}</p>
                                 <div className="box after_none">
-                                    <a className="btn" href="#popup14">Get Tickets</a>
+                                    {/* <button className="btn" onClick={handlePopup14}>Get Tickets</button> */}
+                                    <a className="btn" href='#popup14'>Get Tickets</a>
                                 </div>
-                                <div id="popup14" className="overlay">
+                                <div id="popup14"  className="overlay">
 
                                     <div className="get_ticketp">
                                         <a className="jclose" href="#">
@@ -211,57 +338,47 @@ const SingleEvent = () => {
                                         </a>
 
 
-                                        <SellTicketPop />
+                                        {/* <SellTicketPop  
+                                        eventToken={token}
+                                        handleAddMainLevel={handleAddMainLevel} 
+                                        handleRemoveMainLevelByLabel={handleRemoveMainLevelByLabel}  
+                                        releaseSeatsIoObject={releaseSeatsIoObject}
+                                        holdToken={holdToken} 
+                                        setHoldToken={handleHoldTokenChange}
+                                        mainLevels={mainLevels}
+                                        setMainLevels={handleMainLevels} 
+                                         /> */}
 
                                         <div className="get_ticket_cart ">
 
                                             {/* <div className="get_ticket_carti"></div> */}
-                                            <img src={EventImg} alt='' className='get_ticket_carti' />
+                                            <img src={eventImageUrl} alt='' className='get_ticket_carti' />
                                             <div className="cart_ticker">
                                                 <h2>Cart</h2>
+                                                
                                                 <div className="order_sum_text">
+                                                {mainLevels.map( (mainLev, index) => {
+                                                            return (
+                                                                <div key={index} className="order_summary_data">
+                                                                    <p className="no">x1</p>
+                                                                    <div className="order_tinfo">
+                                                                        <p className="type_name">Ticket Type Name: {mainLev.label} </p>
+                                                                        <p className="type_id">Seat ID: {mainLev.seat} and  Table ID: {mainLev.table}</p>
+                                                                    </div>
+                                                                    <div className="order_pinfo">${mainLev.price}</div>
+                                                                    <div className="order_trash" onClick={() => handleRemoveMainLevelByLabel(mainLev.full_label)}>
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15" fill="none">
+                                                                            <path d="M3.04688 15H11.9531V2.34375H12.6562V1.875H9.375V0H5.625V1.875H2.34375V2.34375H3.04688V15ZM6.09375 0.46875H8.90625V1.875H6.09375V0.46875ZM11.4844 2.34375V14.5312H3.51562V2.34375H11.4844Z" fill="#FF0000" />
+                                                                            <path d="M6.32812 4.6875H5.85938V12.6562H6.32812V4.6875Z" fill="#FF0000" />
+                                                                            <path d="M9.14062 4.6875H8.67188V12.6562H9.14062V4.6875Z" fill="#FF0000" />
+                                                                        </svg>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
 
-                                                    <div className="order_summary_data">
-                                                        <p className="no">x1</p>
-                                                        <div className="order_tinfo">
-                                                            <p className="type_name">Ticket Type Name </p>
-                                                            <p className="type_id">Seat ID or Table ID or Both</p>
-                                                        </div>
-                                                        <div className="order_pinfo">$25.00</div>
-                                                        <div className="order_trash">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
-                                                                viewBox="0 0 15 15" fill="none">
-                                                                <path
-                                                                    d="M3.04688 15H11.9531V2.34375H12.6562V1.875H9.375V0H5.625V1.875H2.34375V2.34375H3.04688V15ZM6.09375 0.46875H8.90625V1.875H6.09375V0.46875ZM11.4844 2.34375V14.5312H3.51562V2.34375H11.4844Z"
-                                                                    fill="#FF0000" />
-                                                                <path d="M6.32812 4.6875H5.85938V12.6562H6.32812V4.6875Z"
-                                                                    fill="#FF0000" />
-                                                                <path d="M9.14062 4.6875H8.67188V12.6562H9.14062V4.6875Z"
-                                                                    fill="#FF0000" />
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                    <div className="order_summary_data">
-                                                        <p className="no">x1</p>
-                                                        <div className="order_tinfo">
-                                                            <p className="type_name">Ticket Type Name </p>
-                                                            <p className="type_id">Seat ID or Table ID or Both</p>
-                                                        </div>
-                                                        <div className="order_pinfo">$25.00</div>
-                                                        <div className="order_trash">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
-                                                                viewBox="0 0 15 15" fill="none">
-                                                                <path
-                                                                    d="M3.04688 15H11.9531V2.34375H12.6562V1.875H9.375V0H5.625V1.875H2.34375V2.34375H3.04688V15ZM6.09375 0.46875H8.90625V1.875H6.09375V0.46875ZM11.4844 2.34375V14.5312H3.51562V2.34375H11.4844Z"
-                                                                    fill="#FF0000" />
-                                                                <path d="M6.32812 4.6875H5.85938V12.6562H6.32812V4.6875Z"
-                                                                    fill="#FF0000" />
-                                                                <path d="M9.14062 4.6875H8.67188V12.6562H9.14062V4.6875Z"
-                                                                    fill="#FF0000" />
-                                                            </svg>
-                                                        </div>
-                                                    </div>
                                                 </div>
+                                               
                                                 <div className="order_main_list">
                                                     <div className="order_list_items">
                                                         <div className="order_list_item">
@@ -771,9 +888,6 @@ const SingleEvent = () => {
                                 </div>
                                 <div id="popup17" className="overlay">
                                     <div className="popupmain">
-
-
-
                                         <div className="order_done">
                                             <a className="jclose" href="#">
                                                 <RiCloseFill />
@@ -826,8 +940,6 @@ const SingleEvent = () => {
                             </div>
                             <div id="popup18" className="overlay">
                                 <div className="popupmain">
-
-
 
                                     <div className="order_done">
                                         <a className="jclose" href="#">
