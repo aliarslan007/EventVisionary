@@ -20,7 +20,7 @@ const RevenueRow = ({ revenue , searchQuery }) => {
                     throw new Error('Authentication token not found');
                 }
 
-                const eventResponse = await fetch(`http://127.0.0.1:8000/api/events/${revenue.revenue_event}/`, {
+                const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${revenue.revenue_event}/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }

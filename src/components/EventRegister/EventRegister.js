@@ -227,7 +227,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                 }
 
                 // fetcb venue data
-                const response = await fetch(`http://127.0.0.1:8000/api/venues/`, {
+                const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }
@@ -259,7 +259,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
 
 
                 //  fetch eventTypes data
-                const eventTypesResponse = await fetch(`http://127.0.0.1:8000/api/eventType/`, {
+                const eventTypesResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventType/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }
@@ -290,7 +290,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
 
 
                 //  fetch eventCategories data
-                const eventCategoriesResponse = await fetch(`http://127.0.0.1:8000/api/eventCategories/`, {
+                const eventCategoriesResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventCategories/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }
@@ -487,7 +487,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
         if (!authToken) {
             throw new Error('Authentication token not found');
         }
-        const response = await fetch('http://127.0.0.1:8000/api/events/', {
+        const response = await fetch('${process.env.REACT_APP_BASE_URL}/api/events/', {
             method: 'POST',
             // headers: {
             //     'Content-Type': 'multipart/form-data',
@@ -553,7 +553,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                 venue_country: venueCountry,
                 venue_state: venueState
             });
-            const response = await fetch('http://127.0.0.1:8000/api/venues/', {
+            const response = await fetch('${process.env.REACT_APP_BASE_URL}/api/venues/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

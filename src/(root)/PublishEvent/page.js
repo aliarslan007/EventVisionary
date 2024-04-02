@@ -42,7 +42,7 @@ const PublishEvent = () => {
                 throw new Error('Authentication authUserId not found');
             }
             // fetch event with eventId
-            const EventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+            const EventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${eventId}/`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ const PublishEvent = () => {
             console.log("body is ", requestBody);
             console.log("eventId is ", eventId);
             // fetch event with eventId
-            const publishChartResponse = await fetch(`http://127.0.0.1:8000/api/publishchart/`, {
+            const publishChartResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/publishchart/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -64,7 +64,7 @@ const Reports = () => {
                 throw new Error('Authentication user id   found');
             }
             // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
-            const response = await fetch('http://127.0.0.1:8000/api/revenues/', {
+            const response = await fetch('${process.env.REACT_APP_BASE_URL}/api/revenues/', {
               headers: {
                 Authorization: `Token ${authToken}`
               }

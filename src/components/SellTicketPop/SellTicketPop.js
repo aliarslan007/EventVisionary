@@ -57,7 +57,7 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject,
                 // Fetch event data
                 console.log("Before api call");
 
-                const eventResponse = await fetch(`http://127.0.0.1:8000/api/eventofuniquetoken/`, {
+                const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject,
 
                 const newEvent = eventData.event;
                 // const baseURL = window.location.origin; // Your base URL
-                const baseURL = "http://127.0.0.1:8000"
+                const baseURL = "${process.env.REACT_APP_BASE_URL}"
                 let imageURL = newEvent.Event_image;
                 console.log("1 : imageURL: ", imageURL);
                 if (imageURL.startsWith('/images')) {
@@ -98,7 +98,7 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject,
                     token : (eventToken)
                 });
                 // fetch event with eventId
-                const PricingResponse = await fetch(`http://127.0.0.1:8000/api/pricingofevent/`, {
+                const PricingResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/pricingofevent/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject,
 
             // Extract venueId from event data
                  // Fetch venue data using the extracted venueId
-                 const tokenResponse = await fetch(`http://127.0.0.1:8000/api/seatioholdtoken/`, {
+                 const tokenResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/seatioholdtoken/`, {
                      headers: {
                          Authorization: `Token ${authToken}`
                      }

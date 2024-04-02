@@ -491,7 +491,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
             throw new Error('Authentication authUserId not found');
         }
         // fetch event with eventId
-        const EventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+        const EventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${eventId}/`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -509,7 +509,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
 
             try{
                 // fetch event with eventId
-            const venueResponse = await fetch(`http://127.0.0.1:8000/api/venues/${venueId}/`, {
+            const venueResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/${venueId}/`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -573,7 +573,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
             console.log("body is ", requestBody);
             console.log("eventId is ", eventId);
             // fetch event with eventId
-            const EventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+            const EventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${eventId}/`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -615,7 +615,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                     console.log("body is ", requestBody);
                     console.log("eventId is ", eventId);
                     // fetch event with eventId
-                    const CategoryResponse = await fetch(`http://127.0.0.1:8000/api/categories/`, {
+                    const CategoryResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/categories/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -658,7 +658,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                         venue_name : responseData.Venue_name,
                     });
                     // fetch event with eventId
-                    const subCategoryResponse = await fetch(`http://127.0.0.1:8000/api/subcategories/`, {
+                    const subCategoryResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/subcategories/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -723,7 +723,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                     console.log("body is ", requestBody);
                     console.log("eventId is ", eventId);
                     // fetch event with eventId
-                    const CategoryResponse = await fetch(`http://127.0.0.1:8000/api/categories/`, {
+                    const CategoryResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/categories/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -777,7 +777,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                 console.log("body is ", requestBody);
                 console.log("eventId is ", eventId);
                 // fetch event with eventId
-                const PricingResponse = await fetch(`http://127.0.0.1:8000/api/pricing/`, {
+                const PricingResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/pricing/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -830,7 +830,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                             });
                             console.log("body of createchart api is : \n", requestBody);
                             // fetcb venue data
-                            const createChartResponse = await fetch(`http://127.0.0.1:8000/api/createchart/`, {
+                            const createChartResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/createchart/`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -862,7 +862,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                                 name: responseData.Event_Name
                             });
                             // fetcb venue data
-                            const responseEventSeatsIO = await fetch(`http://127.0.0.1:8000/api/createseatsioevent/`, {
+                            const responseEventSeatsIO = await fetch(`${process.env.REACT_APP_BASE_URL}/api/createseatsioevent/`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -890,7 +890,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                             // ((((((((()))))))))
                             // ******************
                             const venueiD = responseData.Venue_name
-                            const responseVenueUpdate = await fetch(`http://127.0.0.1:8000/api/venues/${venueiD}/`, {
+                            const responseVenueUpdate = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/${venueiD}/`, {
                                 method: 'PATCH',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -924,7 +924,7 @@ const TicketPrice = ({ title = '', label = '', href = '', showBackButton, eventI
                         console.log("body is ", requestBody);
                         console.log("eventId is ", eventId);
                         // fetch event with eventId
-                        const EventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+                        const EventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${eventId}/`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',

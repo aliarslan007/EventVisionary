@@ -7,6 +7,7 @@ import { EventContext } from '../../context/EventContext';
 import './index.css'
 // import Link from 'next/link'
 import { FaChevronLeft, FaFacebook, FaFacebookF, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { SeatsioSeatingChart } from '@seatsio/seatsio-react';
 import { RiCloseFill } from "react-icons/ri";
 
 
@@ -19,6 +20,11 @@ import { useParams } from 'react-router-dom';
 
 
 const SingleEvent = () => {
+    
+    const [pricing, setPricing] = useState([]);
+    const [boxOfficeCategories, setBoxOfficeCategories] = useState([]);
+
+
     const [paymentOption, setPaymentOption] = useState('Card'); // 'Card' or 'Cash'
     const [count, setCount] = useState(0);
     const [isOverlayOpen, setIsOverlayOpen] = useState(false);
@@ -116,9 +122,9 @@ const SingleEvent = () => {
                     unique_token : token,
                 });
                 // Fetch event data
-                console.log("Before api call");
+                console.log("Before event api call");
 
-                const eventResponse = await fetch(`http://3.239.214.39:8080/api/eventofuniquetoken/`, {
+                const eventResponse = await fetch(`http://3.220.232.18:8080/api/eventofuniquetoken/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -128,7 +134,7 @@ const SingleEvent = () => {
                 });
                 console.log("after api call");
                 if (!eventResponse.ok) {
-                    console.log("inside error api call");
+                    console.log("inside error api call: ", eventResponse);
                     throw new Error('Failed to fetch event data');
                 }
                 const eventData = await eventResponse.json();
@@ -138,7 +144,7 @@ const SingleEvent = () => {
 
 
                 // const baseURL = window.location.origin; // Your base URL
-                const baseURL = "http://127.0.0.1:8000"
+                const baseURL = `${process.env.REACT_APP_BASE_URL}`
                 let imageURL = newEvent.Event_image;
                 console.log("1 : imageURL: ", imageURL);
                 if (imageURL.startsWith('/images')) {
@@ -159,10 +165,10 @@ const SingleEvent = () => {
                 setEvent(eventData.event);
     
                 // Extract venueId from event data
-                const venueId = eventData.event.Venue_name;
+                const venueId = newEvent.Venue_name;
     
                 // Fetch venue data using the extracted venueId
-                const venueResponse = await fetch(`http://127.0.0.1:8000/api/venues/${venueId}/`, {
+                const venueResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/${venueId}/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }
@@ -178,13 +184,13 @@ const SingleEvent = () => {
                 //  const orgId = eventData.user;
     
                  // Fetch venue data using the extracted venueId
-                const eventPriceResponse = await fetch(`http://127.0.0.1:8000/api/eventpricerange/`, {
+                const eventPriceResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventpricerange/`, {
                     method: 'POST',  // Assuming you are making a POST request
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Token ${authToken}`
                     },
-                    body: JSON.stringify({ event_id: (eventData.event.id) })
+                    body: JSON.stringify({ event_id: (newEvent.id) })
                  });
                  if (!eventPriceResponse.ok) {
                      throw new Error('Failed to fetch venue data');
@@ -194,11 +200,11 @@ const SingleEvent = () => {
 
 
                  // Extract venueId from event data
-                 const orgId = eventData.event.user;
+                 const orgId = newEvent.user;
                  console.log("org id is", orgId);
     
                  // Fetch venue data using the extracted venueId
-                 const orgResponse = await fetch(`http://127.0.0.1:8000/api/users/${orgId}/`, {
+                 const orgResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/users/${orgId}/`, {
                      headers: {
                          Authorization: `Token ${authToken}`
                      }
@@ -210,6 +216,63 @@ const SingleEvent = () => {
                  const orgData = await orgResponse.json();
                  console.log("orgData  is", orgData);
                  setOrg(orgData);
+
+                //  *************** child component work
+                ///////////////////////////////////////
+
+                
+                // fetching pricing 
+                const requestBody2 = JSON.stringify({
+                    token : (token)
+                });
+                // fetch event with eventId
+                const PricingResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/pricingofevent/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`
+                },
+                body: requestBody2
+                });
+        
+                // Check if the request was successful (status code 2xx)
+                if (PricingResponse.ok) {
+                    const PricingResponseData = await PricingResponse.json(); // Parse the response JSON
+                    console.log('event PricingResponseData successfully:', PricingResponseData); 
+                    setPricing(PricingResponseData.pricing); 
+                    setBoxOfficeCategories(PricingResponseData.boxOfficeCategories); 
+                    // Optionally, you can return the response data or perform other actions here
+                } else {
+                    console.error(`Error: ${PricingResponse.status}`);
+                    const pricingResponseBody = await PricingResponse.text();
+                    // event.target.submit();
+                    console.log('authToken', authToken);
+                    console.log('Form submitted with data:', requestBody2);
+                    console.error(`Response body: ${pricingResponseBody}`);
+                    return;
+                }
+                // pricing api call ends here
+
+
+            // Extract venueId from event data
+                 // Fetch venue data using the extracted venueId
+                 const tokenResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/seatioholdtoken/`, {
+                     headers: {
+                         Authorization: `Token ${authToken}`
+                     }
+                 });
+                 if (!tokenResponse.ok) {
+                     throw new Error('Failed to fetch venue data');
+                 }
+                 const tokenData = await tokenResponse.json();
+                 console.log("hold token is   is", tokenData);
+                 console.log("hold token is   is", tokenData.token );
+                 setHoldToken(tokenData.token);
+
+
+                /////////////////
+                // //////////////////
+                //////////////////
 
 
             } catch (error) {
@@ -241,7 +304,7 @@ const SingleEvent = () => {
                 console.log("check releaseeventseat Before api call : ", holdToken);
                 console.log("body is ",requestBody);
 
-                const eventResponse = await fetch(`http://127.0.0.1:8000/api/releaseeventseat/`, {
+                const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/releaseeventseat/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -338,7 +401,11 @@ const SingleEvent = () => {
                                         </a>
 
 
-                                        {/* <SellTicketPop  
+                                        
+                                         {/* ///////////////////////// */}
+                                         {/* //////////////////////// */}
+                                        
+                                        <SellTicketPop  
                                         eventToken={token}
                                         handleAddMainLevel={handleAddMainLevel} 
                                         handleRemoveMainLevelByLabel={handleRemoveMainLevelByLabel}  
@@ -346,8 +413,10 @@ const SingleEvent = () => {
                                         holdToken={holdToken} 
                                         setHoldToken={handleHoldTokenChange}
                                         mainLevels={mainLevels}
-                                        setMainLevels={handleMainLevels} 
-                                         /> */}
+                                        setMainLevels={setMainLevels} 
+                                         />
+                                         {/* //////////////////////// */}
+                                         {/* //////////////////////// */}
 
                                         <div className="get_ticket_cart ">
 

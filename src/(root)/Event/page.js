@@ -62,7 +62,7 @@ const Event = () => {
                 // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
                 
                 // Fetch user data
-                const userResponse = await fetch(`http://127.0.0.1:8000/api/users/${authUserId}`, {
+                const userResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/users/${authUserId}`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }
@@ -77,7 +77,7 @@ const Event = () => {
                 setUniqureUrl(newUrl);
 
                 // fetching events details
-                const eventResponse = await fetch(`http://127.0.0.1:8000/api/events/`, {
+                const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }

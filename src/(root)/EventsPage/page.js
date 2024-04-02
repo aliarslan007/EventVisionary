@@ -42,7 +42,7 @@ const EventsPage = () => {
                 throw new Error('Authentication user id   found');
             }
             // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
-            const response = await fetch('http://127.0.0.1:8000/api/events', {
+            const response = await fetch('${process.env.REACT_APP_BASE_URL}/api/events', {
               headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Token ${authToken}`
@@ -75,7 +75,7 @@ const EventsPage = () => {
             // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
             
             // Fetch venue data using the provided venueId
-            const response = await fetch(`http://127.0.0.1:8000/api/venues/${venueId}/`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/${venueId}/`, {
                 headers: {
                     Authorization: `Token ${authToken}`
                 }
@@ -108,7 +108,7 @@ const EventsPage = () => {
                     throw new Error('Authentication token not found');
                 }
 
-                const response = await fetch(`http://127.0.0.1:8000/api/venues/${venueId}/`, {
+                const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/${venueId}/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }

@@ -36,7 +36,7 @@ const DefineTicket = () => {
                 }
 
                 // fetcb venue data
-                const response = await fetch(`http://127.0.0.1:8000/api/events/${eventId}/`, {
+                const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${eventId}/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }

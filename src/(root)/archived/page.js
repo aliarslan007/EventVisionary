@@ -43,7 +43,7 @@ const Archived = () => {
                 // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
                 
                 // Fetch event data
-                const archiveEventsResponse = await fetch(`http://127.0.0.1:8000/api/totalarchived/`, {
+                const archiveEventsResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/totalarchived/`, {
                     method: 'POST',  // Assuming you are making a POST request
                     headers: {
                         'Content-Type': 'application/json',

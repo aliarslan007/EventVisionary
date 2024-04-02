@@ -115,7 +115,7 @@ const Venues = () => {
             const id = selectedVenue.id
     
             // Make the PATCH request to update the user
-            const response = await fetch(`http://127.0.0.1:8000/api/venues/${id}/`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/${id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ const Venues = () => {
                 // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
                 
                 // Fetch event data
-                const venuesResponse = await fetch(`http://127.0.0.1:8000/api/venues`, {
+                const venuesResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues`, {
                     method: 'GET',  // Assuming you are making a POST request
                     headers: {
                         'Content-Type': 'application/json',

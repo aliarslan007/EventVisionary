@@ -33,7 +33,7 @@ const Dashboard = () => {
                 // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
                 
                 // Fetch event data
-                const revenueResponse = await fetch(`http://127.0.0.1:8000/api/totalrevenue/`, {
+                const revenueResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/totalrevenue/`, {
                     method: 'POST',  // Assuming you are making a POST request
                     headers: {
                         'Content-Type': 'application/json',

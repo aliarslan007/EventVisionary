@@ -80,7 +80,7 @@ const Myaccount = () => {
             });
     
             // Make the PATCH request to update the user
-            const response = await fetch(`http://127.0.0.1:8000/api/users/${authUserId}/`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/users/${authUserId}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ const Myaccount = () => {
                 // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
                 
                 // Fetch event data
-                const myaccountResponse = await fetch(`http://127.0.0.1:8000/api/users/${authUserId}/`, {
+                const myaccountResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/users/${authUserId}/`, {
                     method: 'GET',  // Assuming you are making a POST request
                     headers: {
                         'Content-Type': 'application/json',

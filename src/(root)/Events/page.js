@@ -25,7 +25,7 @@ const Events = () => {
         try {
             // Get base URL from window location
             // const baseUrl = window.location.href.replace(/\/[^\/]+$/, '/');
-            const baseUrl = "http://127.0.0.1:8000/"
+            const baseUrl = "${process.env.REACT_APP_BASE_URL}/"
             
             // Construct complete image URL
             const completeUrl = new URL(relativeUrl, baseUrl).href;
@@ -57,7 +57,7 @@ const Events = () => {
                     unique_token: token // Toggle the status value
                 });
                 // Fetch event data
-                const eventResponse = await fetch(`http://127.0.0.1:8000/api/eventsoforg/`, {
+                const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventsoforg/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -92,7 +92,7 @@ const Events = () => {
                     throw new Error('Authentication token not found');
                 }
 
-                const response = await fetch(`http://127.0.0.1:8000/api/venues/${venueId}/`, {
+                const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/${venueId}/`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }

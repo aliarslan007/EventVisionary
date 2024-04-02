@@ -32,7 +32,7 @@ const EventsCard = ({ showMenuButton = true, eventTitle="", eventDateTime="", ve
                     throw new Error('Authentication token not found');
                 }
 
-                const response = await fetch(`http://127.0.0.1:8000/api/events/${eventId}`, {
+                const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${eventId}`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }
@@ -74,7 +74,7 @@ const EventsCard = ({ showMenuButton = true, eventTitle="", eventDateTime="", ve
                 [statusValue]: !selectedEvent[statusValue] // Toggle the status value
             });
 
-            const response = await fetch(`http://127.0.0.1:8000/api/events/${selectedEvent.id}/`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${selectedEvent.id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
