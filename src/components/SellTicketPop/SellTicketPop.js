@@ -1,6 +1,6 @@
 import { Render, Render_mobile_only } from '../../public'
 // import Image from 'next/image'
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useState, useRef} from 'react'
 import { RiCloseFill } from 'react-icons/ri'
 import { useParams } from 'react-router-dom';
 import { SeatsioSeatingChart } from '@seatsio/seatsio-react';
@@ -8,37 +8,26 @@ import { SeatsioDesigner } from '@seatsio/seatsio-react';
 import { useNavigate } from 'react-router-dom';
 
 
-const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject, holdToken, setHoldToken, mainLevels, setMainLevels }) => {
+const SellTicketPop = ({eventToken="", handleAddMainLevel,handleRemoveMainLevel, holdToken, setHoldToken, mainLevels, setMainLevels, releaseSeatsObject }) => {
 
     
     const [event, setEvent] = useState([]);
     const [pricing, setPricing] = useState([]);
     const [boxOfficeCategories, setBoxOfficeCategories] = useState([]);
     const [hold_Token, setHold_Token] = useState('');
+    const prevElement = useRef();
     
     const [eventImageUrl, setEventImageUrl] = useState('');
 
-    
-    const handleRemoveMainLevelByLabel  = (full_label) => {
-        // alert("it is in remove function");
-        console.log("Removing main level  from child ::", full_label);
-        console.log("mainLevels:", mainLevels);
-
-        if (mainLevels.length > 0) {
-            alert("inside if statement ")
-            setMainLevels(prevMainLevels => {
-                // Filter out the main level with the provided full_label
-                const updatedMainLevels = prevMainLevels.filter(level => level.full_label !== full_label);
-                console.log("Updated mainLevels:", updatedMainLevels);
-                return updatedMainLevels;
-            });
-            releaseSeatsIoObject(full_label);
-        
-        }
-        else{
-            alert("main level is 0");
-        }
+    const handleRemoveClick = (label) => {
+        // Call the parent function from here
+        handleRemoveMainLevel(label);
       };
+    const handleAddClick = (label, seatNumber, table, price, seat_label) => {
+        // Call the parent function from here
+        handleAddMainLevel(label, seatNumber, table, price, seat_label);
+      };
+    
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,7 +44,7 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject,
                     unique_token : eventToken,
                 });
                 // Fetch event data
-                console.log("Before api call");
+                console.log("in child Before api call");
 
                 const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`, {
                     method: 'POST',
@@ -75,7 +64,7 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject,
 
                 const newEvent = eventData.event;
                 // const baseURL = window.location.origin; // Your base URL
-                const baseURL = "${process.env.REACT_APP_BASE_URL}"
+                const baseURL = "http://127.0.0.1:8000/"
                 let imageURL = newEvent.Event_image;
                 console.log("1 : imageURL: ", imageURL);
                 if (imageURL.startsWith('/images')) {
@@ -150,7 +139,10 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject,
         };
     
         // Call the fetchData function
-        fetchData();
+        if (prevElement.current !== eventToken) {
+            fetchData();
+            prevElement.current = eventToken;
+        }
     }, [eventToken]); // Include eventId in the dependency array to trigger the effect when it changes
     
 
@@ -228,7 +220,7 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject,
                         }
                     const label = seat_sub_category ? seat_sub_category : seat_category;
 
-                    handleAddMainLevel(label, seatNumber, table, price, seat_label);
+                    handleAddClick(label, seatNumber, table, price, seat_label);
 
                     }
                 }
@@ -236,7 +228,7 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel, releaseSeatsIoObject,
                 onObjectDeselected={ async function (object)
                     {
                         alert("it is in deselect")
-                        handleRemoveMainLevelByLabel(object.label) ;
+                        handleRemoveClick(object.label) ;
                     }
                 }
                 region="eu"

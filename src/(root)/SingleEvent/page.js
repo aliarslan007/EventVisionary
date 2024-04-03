@@ -2,12 +2,12 @@
 // import { EventImg, Logo, Mine_logo,  } from '../../public'
 import {  Mine_logo, Logo,EventImg, Render } from '../../public'
 // import Image from 'next/image'
-import React, { useState,useEffect, useContext  } from 'react'
+import React, { useState, useEffect, useMemo  , useRef, useCallback   } from 'react'
 import { EventContext } from '../../context/EventContext';
 import './index.css'
 // import Link from 'next/link'
 import { FaChevronLeft, FaFacebook, FaFacebookF, FaLinkedin, FaTwitter } from "react-icons/fa";
-import { SeatsioSeatingChart } from '@seatsio/seatsio-react';
+import { SeatsioSeatingChart, SeatsioEventManager  } from '@seatsio/seatsio-react';
 import { RiCloseFill } from "react-icons/ri";
 
 
@@ -19,10 +19,13 @@ import RootLayout from '../layout';
 import { useParams } from 'react-router-dom';
 
 
-const SingleEvent = () => {
+    const SingleEvent = () => {
     
     const [pricing, setPricing] = useState([]);
     const [boxOfficeCategories, setBoxOfficeCategories] = useState([]);
+    let base_api_url="http://127.0.0.1:8000";
+    const prevElement = useRef();
+    const prevLabel = useRef();
 
 
     const [paymentOption, setPaymentOption] = useState('Card'); // 'Card' or 'Cash'
@@ -31,6 +34,7 @@ const SingleEvent = () => {
     const { token } = useParams(); 
     const [holdToken, setHoldToken] = useState('');
     const [mainLevels, setMainLevels] = useState([]);
+    const memoizedMainLevels = useMemo(() => mainLevels, [mainLevels]);
     const [event, setEvent] = useState([]);
     const [eventImageUrl, setEventImageUrl] = useState('');
     const [loading, setLoading] = useState(true);
@@ -39,51 +43,157 @@ const SingleEvent = () => {
     const [venue, setVenue] = useState([]);
     const [org, setOrg] = useState([]);
     const [eventPriceRange, setEventPriceRange] = useState([]);
+    const [popup14Class, setPopup14Classe] = useState('hide_popup');
+
+    const [subTotalCart, setSubTotalCart] = useState(0);
+    const [serviceFeeCart, setServiceFeeCart] = useState(0);
+    const [P, setP] = useState(0);
+    const [G, setG] = useState(0);
+    const [taxesCart, setTaxesCart] = useState(0);
+    const [totalBillCart, setTotalBillCart] = useState(0);
+    const [is_event_free, setIs_event_free] = useState(false);
+    const [is_absorb_fee, setIs_absorb_fee] = useState(false);
+    const [selectedSeats, setSelectedSeats] = useState([]);
 
     const handleHoldTokenChange = (newToken) => {
+        console.log('token is : ', newToken )
         setHoldToken(newToken);
     };
 
-
-    const handleAddMainLevel = (label, seat, table, price, full_label) => {
-        
-        console.log("mainLevels from main :", mainLevels);
-        const newMainLevel = { 
-            // id: lastMainLevelId + 1, 
-            label, 
-            seat, 
-            table, 
-            price, 
-            full_label 
-        };
-        console.log("Updated mainLevels:", newMainLevel);
-        
-        setMainLevels(prevMainLevels=>[...prevMainLevels, newMainLevel]);
+    const openPopup14 = () =>{
+        console.log("in popup opening funcitons ");
+        getHoldToken();
+        setPopup14Classe('show_popup');
+    } 
+    const closePopup14 = () =>{
+        console.log("in popup opening funcitons ")
+        setPopup14Classe('hide_popup');
     };
 
+    
 
-    const handleRemoveMainLevelByLabel  = (full_label) => {
-        // alert("it is in remove function");
+    const handleAddMainLevel = useCallback((label, seat, table, price, full_label) => {
+        
+        setMainLevels(prevMainLevels => {
+            const newMainLevel = { label, seat, table, price, full_label };
+            console.log("Updated mainLevels:", [...prevMainLevels, newMainLevel]);
+            return [...prevMainLevels, newMainLevel];
+        });
+        setSelectedSeats(prevSelectedSeats => {
+            const newSelectedSeats = { label, seat, table, price, full_label };
+            console.log("Updated newSelectedSeats:", [...prevSelectedSeats, newSelectedSeats]);
+            return [...prevSelectedSeats, newSelectedSeats];
+        });
+    }, [mainLevels]);
+
+
+    const handleRemoveMainLevelByLabel  =useCallback( (full_label) => {
         console.log("Removing main level  ::", full_label);
+        console.log("typeof Removing main level  ::", typeof(full_label));
         console.log("mainLevels:", mainLevels);
-
-        if (mainLevels.length > 0) {
-            alert("inside if statement ")
+    
+        const isLabelFound = mainLevels.some(level => level.full_label === full_label);
+    
+        if (isLabelFound) {
+            console.log("inside if statement ");
+    
             setMainLevels(prevMainLevels => {
-                // Filter out the main level with the provided full_label
                 const updatedMainLevels = prevMainLevels.filter(level => level.full_label !== full_label);
                 console.log("Updated mainLevels:", updatedMainLevels);
                 return updatedMainLevels;
             });
-            releaseSeatsIoObject(full_label);
-        
+            setSelectedSeats(prevSelectedSeats => {
+                const updatedSelectedSeats = prevSelectedSeats.filter(level => level.full_label !== full_label);
+                console.log("Updated mainLevels:", updatedSelectedSeats);
+                return updatedSelectedSeats;
+            });
+    
+            console.log("After updating mainLevels:", mainLevels);
+            console.log("Before calling releaseSeatsObject mainLevels :", mainLevels);
+            releaseSeatsObject(full_label);
+        } else {
+            console.log("Label not found in mainLevels");
+        }   
+    }, [mainLevels]);
+    
+    const calculateSubtotal = (selectedSeats) => {
+        // Logic to calculate subtotal
+        if(event.is_event_free){
+            // setSubTotalCart(0);
+            return 0;
         }
         else{
-            alert("main level is 0");
+        let subtotal = 0;
+        selectedSeats.forEach(seat => {
+          subtotal += seat.price;
+        });
+        
+        // setSubTotalCart(subtotal);
+        return subtotal;
+
+       }
+      };
+    
+      // Function to calculate taxes based on subtotal
+      const calculateTaxes = (subtotal) => {
+        // Logic to calculate taxes
+        if(event.is_event_free){
+            // setTaxesCart(0);
+            return 0;
+        }
+        else{
+            const taxRate = event.event_tax; // Example tax rate (10%)
+            // setTaxesCart(taxRate);
+            return ((subtotal * taxRate)/100);
         }
       };
     
+      // Function to calculate service fee based on subtotal
+      const calculateServiceFee = (subtotal) => {
+        // Logic to calculate service fee
+        if(event.is_event_free){
+            return 0;
+        }
+        else{
+            const P = ((subTotalCart + taxesCart)*0.0429)+(1.0);
+            const G = ((subTotalCart + taxesCart)*0.029)+(0.3);
+            setP(P);
+            setG(G);
+            if (event.is_absorb_fee){
+                console.log("serviceFeeRate \n", (P+G));
+                return  0;
+
+            }
+            else{
+                console.log("P \n", P);
+                console.log("G \n", G);
+                const serviceFeeRate = P+G
+                // Example service fee rate (5%)
+                // setTotalBillCart((subTotalCart+P+G));
+                return serviceFeeRate;
+            }
+        }
+      };
     
+      useEffect(() => {
+        // Calculate subtotal based on selected seats
+        const subtotal = calculateSubtotal(selectedSeats);
+        setSubTotalCart(subtotal);
+    
+        // Calculate taxes based on subtotal
+        const calculatedTaxes = calculateTaxes(subtotal);
+        setTaxesCart(calculatedTaxes);
+    
+        // Calculate service fee based on subtotal
+        const calculatedServiceFee = calculateServiceFee(subtotal);
+        setServiceFeeCart(calculatedServiceFee);
+    
+        // Calculate total
+        const calculatedTotal = subtotal + calculatedTaxes + calculatedServiceFee;
+        setTotalBillCart(calculatedTotal);
+
+      }, [selectedSeats]);
+
     const handlePaymentChange = (event) => {
         setPaymentOption(event.target.value);
     };
@@ -106,10 +216,13 @@ const SingleEvent = () => {
         setIsOverlayOpen(false);
     };
 
+    // 
+
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // base_api_url = "http://127.0.0.1:8000";
                 
                 // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
                 const authToken = localStorage.getItem('authToken');
@@ -122,9 +235,12 @@ const SingleEvent = () => {
                     unique_token : token,
                 });
                 // Fetch event data
-                console.log("Before event api call");
+                console.log("Before event api call and token :", token);
+                console.log("url is : ", (`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`));
+                console.log("static url is : ", (`${base_api_url}/api/eventofuniquetoken/`));
 
-                const eventResponse = await fetch(`http://3.220.232.18:8080/api/eventofuniquetoken/`, {
+                // const eventResponse = await fetch(`http://127.0.0.1:8000/api/eventofuniquetoken/`, {
+                    const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -144,7 +260,7 @@ const SingleEvent = () => {
 
 
                 // const baseURL = window.location.origin; // Your base URL
-                const baseURL = `${process.env.REACT_APP_BASE_URL}`
+                const baseURL = `${base_api_url}`
                 let imageURL = newEvent.Event_image;
                 console.log("1 : imageURL: ", imageURL);
                 if (imageURL.startsWith('/images')) {
@@ -253,23 +369,6 @@ const SingleEvent = () => {
                 }
                 // pricing api call ends here
 
-
-            // Extract venueId from event data
-                 // Fetch venue data using the extracted venueId
-                 const tokenResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/seatioholdtoken/`, {
-                     headers: {
-                         Authorization: `Token ${authToken}`
-                     }
-                 });
-                 if (!tokenResponse.ok) {
-                     throw new Error('Failed to fetch venue data');
-                 }
-                 const tokenData = await tokenResponse.json();
-                 console.log("hold token is   is", tokenData);
-                 console.log("hold token is   is", tokenData.token );
-                 setHoldToken(tokenData.token);
-
-
                 /////////////////
                 // //////////////////
                 //////////////////
@@ -283,11 +382,15 @@ const SingleEvent = () => {
         };
     
         // Call the fetchData function
-        fetchData();
+        if (prevElement.current !== token) {
+            fetchData();
+            prevElement.current = token;
+        }
     }, [token]); // Include eventId in the dependency array to trigger the effect when it changes
     
 
-    const releaseSeatsIoObject= async (label) => {
+    const releaseSeatsObject= async (label) => {
+        console.log("this is release event full label is ");
         try{
             const authToken = localStorage.getItem('authToken');
 
@@ -303,8 +406,13 @@ const SingleEvent = () => {
                 // Fetch event data
                 console.log("check releaseeventseat Before api call : ", holdToken);
                 console.log("body is ",requestBody);
+                let eventResponse=""
+                if (prevElement.current !== label) {
+                    prevElement.current = label;
+                
+                    console.log("this is label ", label);
 
-                const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/releaseeventseat/`, {
+                eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/releaseeventseat/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -312,6 +420,10 @@ const SingleEvent = () => {
                     },
                     body: requestBody
                 });
+                }// if for prevElement check ends here
+                else{
+                    console.log("this is the issue ");
+                }
                 console.log("after api call");
                 if (!eventResponse.ok) {
                     console.log("eventResponse : ",eventResponse );
@@ -319,9 +431,10 @@ const SingleEvent = () => {
                 }
                 else{
 
+                    const eventData = await  eventResponse.json();
+                    console.log("eventData api call", eventData);
+                    return true;
                 }
-                const eventData = await eventResponse.json();
-                console.log("eventData api call", eventData);
                 
         } catch (error) {
             // Handle network errors or other exceptions
@@ -329,7 +442,37 @@ const SingleEvent = () => {
         }
     }
 
-    
+    const getHoldToken= async () => {
+        console.log("this is release event full label is ");
+        try{
+            const authToken = localStorage.getItem('authToken');
+
+                if (!authToken) {
+                throw new Error('Authentication token not found');
+                }
+
+                
+                // Fetch event data
+                // Extract venueId from event data
+                 // Fetch venue data using the extracted venueId
+                 const tokenResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/seatioholdtoken/`, {
+                     headers: {
+                         Authorization: `Token ${authToken}`
+                     }
+                 });
+                 if (!tokenResponse.ok) {
+                     throw new Error('Failed to fetch venue data');
+                 }
+                 const tokenData = await tokenResponse.json();
+                 console.log("hold token is   is", tokenData);
+                 console.log("hold token is   is", tokenData.token );
+                 setHoldToken(tokenData.token);
+
+        } catch (error) {
+            // Handle network errors or other exceptions
+            console.error('Error:', error.message);
+        }
+    }
 
     return (
         <>
@@ -391,30 +534,125 @@ const SingleEvent = () => {
                                 <p className="after_none">${eventPriceRange.minimum_price} - ${eventPriceRange.maximum_price}</p>
                                 <div className="box after_none">
                                     {/* <button className="btn" onClick={handlePopup14}>Get Tickets</button> */}
-                                    <a className="btn" href='#popup14'>Get Tickets</a>
+                                    <button className="btn" onClick={openPopup14}>Get Tickets</button>
                                 </div>
-                                <div id="popup14"  className="overlay">
+                                <div id="popup14"  className={`overlay_14 ${popup14Class}`}>
 
                                     <div className="get_ticketp">
-                                        <a className="jclose" href="#">
+                                        <button className="jclose" onClick={closePopup14}>
                                             <RiCloseFill color="#FAE100" className="Xmarks" />
-                                        </a>
+                                        </button>
 
 
                                         
                                          {/* ///////////////////////// */}
                                          {/* //////////////////////// */}
                                         
-                                        <SellTicketPop  
-                                        eventToken={token}
-                                        handleAddMainLevel={handleAddMainLevel} 
-                                        handleRemoveMainLevelByLabel={handleRemoveMainLevelByLabel}  
-                                        releaseSeatsIoObject={releaseSeatsIoObject}
-                                        holdToken={holdToken} 
-                                        setHoldToken={handleHoldTokenChange}
-                                        mainLevels={mainLevels}
-                                        setMainLevels={setMainLevels} 
-                                         />
+                                         <div className="get_ticket_over">
+                                            <div className="get_ticket_overi">
+
+                                                <h1>{event.Event_Name}</h1>
+                                                <p className="res_yellow">{event.start_date} at {event.start_time}</p>
+                                                <p className="res_p">Select your seat(s) or table(s) below to add it to your cart</p>
+                                            </div>
+                                            <div className="res_triangle res_none">
+                                            {/* <img alt='' src={Render} className="res_triangle res_none" />
+                                            <img alt='' src={Render_mobile_only} className="res_triangle pc_none" /> */}
+                                            <SeatsioSeatingChart 
+                                                workspaceKey="d7e614a0-9aab-4e68-b91a-299311ea1a62"
+                                                event={event.event_id}
+                                                pricing={pricing}
+                                                unavailableCategories={boxOfficeCategories}
+                                                showFullScreenButton= {true}
+                                                showSectionPricingOverlay = {true}
+                                                session='manual'
+                                                holdToken={holdToken}
+                                                // mainLevels={memoizedMainLevels}   // Pass mainLevels as a prop
+                                                handleRemoveMainLevelByLabel={handleRemoveMainLevelByLabel}  // Pass the function reference
+                                                handleAddMainLevel={handleAddMainLevel} 
+                                                onObjectSelected=  { async function (object)
+                                                    {
+                                                    let ticketTypes=""
+                                                    if(object.pricing.ticketTypes){
+                                                        ticketTypes = object.pricing.ticketTypes;
+                                                    }
+                                                    console.log("object is ",object );
+                                                    let seat_sub_category = ''
+                                                    let seat_category = ''
+                                                    let seat_label=''
+                                                    let seat_type=''
+                                                    let price=0
+                                                    seat_type = object.objectType;
+                                                    console.log("seat type is ", seat_type);
+                                                    
+                                                    seat_label=object.label;
+                                                    const [table, seatNumber] = seat_label ? seat_label.split('-') : ["", ""];
+                                                    seat_category=object.category.label;
+
+                                                        if (seat_type.includes("Seat"))
+                                                        {
+                                                            if (ticketTypes) {
+                                                                seat_sub_category=object.selectedTicketType;
+
+                                                                for (const ticketVar of ticketTypes) {
+                                                                    if (seat_sub_category.includes(ticketVar.ticketType)) {
+                                                                        price= ticketVar.price
+                                                                    }
+                                                                }
+                                                                console.log("seat_category is ",seat_category );
+                                                                console.log("seat_sub_category is ",seat_sub_category );
+                                                                console.log("seat_label is ",seat_label );
+                                                                console.log("price is ",price );
+                                                            }
+                                                            else {
+                                                                price = object.pricing.price;
+                                                                
+                                                                console.log("seat_category is ",seat_category );
+                                                                console.log("seat_sub_category is ",seat_sub_category );
+                                                                console.log("seat_label is ",seat_label );
+                                                                console.log("price is ",price );
+                                                            }
+                                                        }
+                                                        else{
+                                                            price = object.pricing.price;
+                                                            
+                                                            console.log("seat_category is ",seat_category );
+                                                            console.log("seat_sub_category is ",seat_sub_category );
+                                                            console.log("seat_label is ",seat_label );
+                                                            console.log("price is ",price ); 
+                                                        }
+                                                    const label = seat_sub_category ? seat_sub_category : seat_category;
+
+                                                    handleAddMainLevel(label, seatNumber, table, price, seat_label);
+
+                                                    }
+                                                }
+
+                                                onObjectDeselected={ async function (object)
+                                                    {
+                                                        alert("it is in deselect")
+                                                        handleRemoveMainLevelByLabel(object.label) ;
+                                                    }
+                                                } 
+                                                region="eu"
+                                                
+                                            />
+                                            </div>
+                                            <div className="promo_ticket">
+                                                <form action="" className="promo_cl res_none">
+                                                    <label htmlFor="promo">Promo Code</label>
+                                                    <div className="promo_ticket_input">
+                                                        <input type="text" />
+                                                        <button type="button">Apply</button>
+                                                    </div>
+                                                </form>
+                                                <div className="box">
+                                                    <a className="btn res_none" href="#popup15">Get Tickets</a>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
                                          {/* //////////////////////// */}
                                          {/* //////////////////////// */}
 
@@ -452,19 +690,19 @@ const SingleEvent = () => {
                                                     <div className="order_list_items">
                                                         <div className="order_list_item">
                                                             <p>Subtotal</p>
-                                                            <p>$50.00</p>
+                                                            <p>${subTotalCart}</p>
                                                         </div>
                                                         <div className="order_list_item">
                                                             <p>Taxes</p>
-                                                            <p>$50.00</p>
+                                                            <p>${taxesCart}</p>
                                                         </div>
                                                         <div className="order_list_item">
                                                             <p>Service Fees</p>
-                                                            <p>$50.00</p>
+                                                            <p>${serviceFeeCart}</p>
                                                         </div>
                                                         <div className="order_list_item">
                                                             <p>Total</p>
-                                                            <p>$50.00</p>
+                                                            <p>${totalBillCart}</p>
                                                         </div>
                                                     </div>
 
