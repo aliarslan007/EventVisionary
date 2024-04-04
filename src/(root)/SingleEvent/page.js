@@ -44,6 +44,8 @@ import { useParams } from 'react-router-dom';
     const [org, setOrg] = useState([]);
     const [eventPriceRange, setEventPriceRange] = useState([]);
     const [popup14Class, setPopup14Classe] = useState('hide_popup');
+    const [popup15Class, setPopup15Classe] = useState('hide_popup');
+    // const [popup14Class, setPopup14Classe] = useState('hide_popup');
 
     const [subTotalCart, setSubTotalCart] = useState(0);
     const [serviceFeeCart, setServiceFeeCart] = useState(0);
@@ -68,6 +70,15 @@ import { useParams } from 'react-router-dom';
     const closePopup14 = () =>{
         console.log("in popup opening funcitons ")
         setPopup14Classe('hide_popup');
+    };
+    const openPopup15 = () =>{
+        console.log("in popup opening funcitons ");
+        getHoldTokenExtended();
+        setPopup15Classe('show_popup');
+    } 
+    const closePopup15 = () =>{
+        console.log("in popup opening funcitons ")
+        setPopup15Classe('hide_popup');
     };
 
     
@@ -104,7 +115,7 @@ import { useParams } from 'react-router-dom';
             });
             setSelectedSeats(prevSelectedSeats => {
                 const updatedSelectedSeats = prevSelectedSeats.filter(level => level.full_label !== full_label);
-                console.log("Updated mainLevels:", updatedSelectedSeats);
+                console.log("Updated updatedSelectedSeats:", updatedSelectedSeats);
                 return updatedSelectedSeats;
             });
     
@@ -129,7 +140,7 @@ import { useParams } from 'react-router-dom';
         });
         
         // setSubTotalCart(subtotal);
-        return subtotal;
+        return parseFloat(subtotal.toFixed(2));
 
        }
       };
@@ -137,14 +148,24 @@ import { useParams } from 'react-router-dom';
       // Function to calculate taxes based on subtotal
       const calculateTaxes = (subtotal) => {
         // Logic to calculate taxes
+        console.log("check free event status ", (event.is_event_free));
         if(event.is_event_free){
             // setTaxesCart(0);
             return 0;
         }
         else{
-            const taxRate = event.event_tax; // Example tax rate (10%)
-            // setTaxesCart(taxRate);
-            return ((subtotal * taxRate)/100);
+            if (event.is_event_tax_enable){
+
+                console.log("in free event else side tax enable: ", (event.event_tax));
+                const taxRate = event.event_tax; // Example tax rate (10%)
+                // setTaxesCart(taxRate);
+                return parseFloat(((subtotal * taxRate)/100).toFixed(2));
+            }
+            else{
+                console.log("in free event else side tax not  enable: ");
+
+                return 0;
+            }
         }
       };
     
@@ -155,19 +176,28 @@ import { useParams } from 'react-router-dom';
             return 0;
         }
         else{
-            const P = ((subTotalCart + taxesCart)*0.0429)+(1.0);
-            const G = ((subTotalCart + taxesCart)*0.029)+(0.3);
+            console.log("in else service fee subtotal \n", (subtotal));
+            console.log("in else service fee subTotalCart \n", (subTotalCart));
+            console.log("taxesCart \n", (taxesCart));
+            
+            const temp_P = ((subtotal + taxesCart)*0.0429)+(1.0).toFixed(2);
+            const temp_G = ((subtotal + taxesCart)*0.029)+(0.3).toFixed(2);
+            const P = parseFloat(temp_P);
+            const G = parseFloat(temp_G);
+            
+            console.log("P \n", (P));
+            console.log("G \n", (G));
             setP(P);
             setG(G);
-            if (event.is_absorb_fee){
-                console.log("serviceFeeRate \n", (P+G));
+            if (event.absorb_fee){
+                console.log("if is_absorb_fee serviceFeeRate \n", (P+G));
                 return  0;
 
             }
             else{
-                console.log("P \n", P);
-                console.log("G \n", G);
-                const serviceFeeRate = P+G
+                console.log(" else is_absorb_feeP \n", P);
+                console.log("else is_absorb_feeG \n", G);
+                const serviceFeeRate = parseFloat((P+G).toFixed(2));
                 // Example service fee rate (5%)
                 // setTotalBillCart((subTotalCart+P+G));
                 return serviceFeeRate;
@@ -176,6 +206,9 @@ import { useParams } from 'react-router-dom';
       };
     
       useEffect(() => {
+        if(selectedSeats.length>0){
+
+        
         // Calculate subtotal based on selected seats
         const subtotal = calculateSubtotal(selectedSeats);
         setSubTotalCart(subtotal);
@@ -191,6 +224,13 @@ import { useParams } from 'react-router-dom';
         // Calculate total
         const calculatedTotal = subtotal + calculatedTaxes + calculatedServiceFee;
         setTotalBillCart(calculatedTotal);
+       }
+       else{
+        setSubTotalCart(0);
+        setTaxesCart(0);
+        setServiceFeeCart(0);
+        setTotalBillCart(0);
+       }
 
       }, [selectedSeats]);
 
@@ -474,6 +514,42 @@ import { useParams } from 'react-router-dom';
         }
     }
 
+    const getHoldTokenExtended= async () => {
+        try{
+            const authToken = localStorage.getItem('authToken');
+
+                if (!authToken) {
+                throw new Error('Authentication token not found');
+                }
+
+                
+                // Fetch event data
+                // Extract venueId from event data
+                 // Fetch venue data using the extracted venueId
+                 const requestBody = JSON.stringify({
+                    token : holdToken,
+                });
+                 const tokenResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/extendholdtoken/`, {
+                    method: 'POST',
+                    headers: {
+                         Authorization: `Token ${authToken}`
+                     },
+                     body:requestBody
+                 });
+                 if (!tokenResponse.ok) {
+                     throw new Error('Failed to fetch venue data');
+                 }
+                 const tokenData = await tokenResponse.json();
+                 console.log("hold token is extended  is", tokenData);
+                 console.log("hold token is   is", tokenData.token );
+                 setHoldToken(tokenData.token);
+
+        } catch (error) {
+            // Handle network errors or other exceptions
+            console.error('Error:', error.message);
+        }
+    }
+
     return (
         <>
         <RootLayout>
@@ -630,7 +706,7 @@ import { useParams } from 'react-router-dom';
 
                                                 onObjectDeselected={ async function (object)
                                                     {
-                                                        alert("it is in deselect")
+                                                        // alert("it is in deselect")
                                                         handleRemoveMainLevelByLabel(object.label) ;
                                                     }
                                                 } 
@@ -647,7 +723,7 @@ import { useParams } from 'react-router-dom';
                                                     </div>
                                                 </form>
                                                 <div className="box">
-                                                    <a className="btn res_none" href="#popup15">Get Tickets</a>
+                                                    <button className="btn res_none" type='button' onClick={openPopup15}>Get Tickets</button>
                                                 </div>
 
                                             </div>
@@ -738,15 +814,15 @@ import { useParams } from 'react-router-dom';
                                     </div>
                                 </div>
 
-                                <div id="popup15" className="overlay">
+                                <div id="popup15" className={`overlay_14 ${popup15Class}`}>
                                     <div className="get_ticketp2">
 
 
                                         <div className="get_ticket_over">
                                             <div className="get_ticket_overi res_none">
 
-                                                <h1>Event Title</h1>
-                                                <p className="res_yellow">Saturday, July 5, 2025 at 7:30 pm PST</p>
+                                                <h1>{event.Event_Name}</h1>
+                                                <p className="res_yellow">{event.start_date} at {event.end_date}</p>
                                                 <p>Time left: 13:19</p>
                                             </div>
 
@@ -822,10 +898,10 @@ import { useParams } from 'react-router-dom';
 
                                         </div>
 
-                                        <a className="jclose" href="#">
+                                        <button className="jclose" onClick={closePopup15}>
                                             <RiCloseFill color="#FAE100" className="Xmarks" />
 
-                                        </a>
+                                        </button>
                                         <a className="fclose pc_none" href="#popup14">
                                             <IoIosArrowBack  className="fclose_i"/>
                                         </a>
@@ -1065,10 +1141,10 @@ import { useParams } from 'react-router-dom';
                                                     </div>
                                                 </form>
                                                 <div className="box">
-                                                    <div className="back_form">
+                                                    <div className="back_form"> 
                                                         <div className="back_btns">
                                                             <a href="#popup14"><FaChevronLeft className="back_icon" /></a>
-                                                            <a className="" href="#popup15">Back</a>
+                                                            <button className="" onClick={closePopup15}>Back</button>
 
                                                         </div>
                                                         <a className="btn" href="#popup16">Get Tickets</a>
