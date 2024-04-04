@@ -43,8 +43,9 @@ import { useParams } from 'react-router-dom';
     const [venue, setVenue] = useState([]);
     const [org, setOrg] = useState([]);
     const [eventPriceRange, setEventPriceRange] = useState([]);
-    const [popup14Class, setPopup14Classe] = useState('hide_popup');
-    const [popup15Class, setPopup15Classe] = useState('hide_popup');
+    const [popup14Class, setPopup14Class] = useState('hide_popup');
+    const [popup15Class, setPopup15Class] = useState('hide_popup');
+    const [popup16Class, setPopup16Class] = useState('hide_popup');
     // const [popup14Class, setPopup14Classe] = useState('hide_popup');
 
     const [subTotalCart, setSubTotalCart] = useState(0);
@@ -57,6 +58,64 @@ import { useParams } from 'react-router-dom';
     const [is_absorb_fee, setIs_absorb_fee] = useState(false);
     const [selectedSeats, setSelectedSeats] = useState([]);
 
+
+    //  booking information states
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [address1, setAddress1] = useState('');
+    const [address2, setAddress2] = useState('');
+    const [email, setEmail] = useState('');
+    const [city, setCity] = useState('');
+    const [state, setState] = useState('');
+    const [postal, setPostal] = useState('');
+    const [creditCardNumber, setCreditCardNumber] = useState('');
+    const [creditCardExpiry, setCreditCardExpiry] = useState('');
+    const [creditCardCVV, setCreditCardCVV] = useState('');
+
+    const handleFirstNameChange = (event) => {
+        setFirstName(event.target.value);
+      };
+      
+      const handleLastNameChange = (event) => {
+        setLastName(event.target.value);
+      };
+      
+      const handleAddress1Change = (event) => {
+        setAddress1(event.target.value);
+      };
+      
+      const handleAddress2Change = (event) => {
+        setAddress2(event.target.value);
+      };
+      
+      const handleEmailChange = (event) => {
+        setEmail(event.target.value);
+      };
+      const handleCityChange = (event) => {
+        setCity(event.target.value);
+      };
+      
+      const handleStateChange = (event) => {
+        setState(event.target.value);
+      };
+      
+      const handlePostalChange = (event) => {
+        setPostal(event.target.value);
+      };
+      
+      const handleCreditCardNumberChange = (event) => {
+        setCreditCardNumber(event.target.value);
+      };
+      
+      const handleCreditCardExpiryChange = (event) => {
+        setCreditCardExpiry(event.target.value);
+      };
+      
+      const handleCreditCardCVVChange = (event) => {
+        setCreditCardCVV(event.target.value);
+      };
+
+
     const handleHoldTokenChange = (newToken) => {
         console.log('token is : ', newToken )
         setHoldToken(newToken);
@@ -65,21 +124,87 @@ import { useParams } from 'react-router-dom';
     const openPopup14 = () =>{
         console.log("in popup opening funcitons ");
         getHoldToken();
-        setPopup14Classe('show_popup');
+        setPopup14Class('show_popup');
     } 
     const closePopup14 = () =>{
         console.log("in popup opening funcitons ")
-        setPopup14Classe('hide_popup');
+        setPopup14Class('hide_popup');
     };
     const openPopup15 = () =>{
+        if (selectedSeats <1){
+            alert("you have not selected any seat. ")
+            return
+        }
         console.log("in popup opening funcitons ");
         getHoldTokenExtended();
-        setPopup15Classe('show_popup');
+        setPopup15Class('show_popup');
     } 
     const closePopup15 = () =>{
         console.log("in popup opening funcitons ")
-        setPopup15Classe('hide_popup');
+        setPopup15Class('hide_popup');
     };
+    const openPopup16 = () =>{
+        console.log("in popup opening funcitons ");
+        setPopup16Class('show_popup');
+    } 
+    const closePopup16 = () =>{
+        console.log("in popup opening funcitons ");
+        setPopup16Class('hide_popup');
+    
+    };
+
+    const getTicketFinalButton = () => {
+        let message = ""
+        if (
+            !firstName ||
+            !lastName ||
+            !address1 ||
+            !email ||
+            !city ||
+            !state ||
+            !postal ||
+            !creditCardNumber ||
+            !creditCardExpiry ||
+            !creditCardCVV
+          ) {
+            message = message+("\n * fill all required fields first");// At least one field is empty
+          } 
+
+           // Check if email is in proper format
+          // Check if email is in proper format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            message = message+("\n *Email is not in proper format");
+            // return ; // Email is not in proper format
+        }
+
+        // Check if credit card number has proper length
+        if (creditCardNumber.toString().length !== 16) {
+            message = message+("\n *Enter correct and complete card number details");
+            // return ; // Credit card number does not have proper length
+        }
+
+        // Check if CVV is a three-digit number
+        if (creditCardCVV.toString().length !== 3 || isNaN(creditCardCVV)) {
+            message = message+("\n *CVV is not correct, it should be three digit positive number");
+            // return ; // CVV is not a three-digit number
+        }
+
+        if (message){
+            alert(message);
+            return
+
+        }
+        else{
+            console.log("in popup opening funcitons ");
+            // setPopup15Class('hide_popup');
+            setPopup16Class('show_popup');
+
+        }
+        
+
+    }
+    
 
     
 
@@ -840,35 +965,35 @@ import { useParams } from 'react-router-dom';
                                                 <form action="" className="buy_ticket">
                                                     <label htmlFor="" className='yellow_cr'>Billing Information</label>
                                                     <div className="buy_ticket_row">
-                                                        <input type="text" placeholder="First Name *" />
-                                                        <input type="text" placeholder="Last Name *" />
-                                                        <input type="email" className='long_inp' placeholder="Email *" />
+                                                        <input type="text" value={firstName} onChange={handleFirstNameChange} placeholder="First Name *" />
+                                                        <input type="text" value={lastName} onChange={handleLastNameChange} placeholder="Last Name *" />
+                                                        <input type="email" value={email} onChange={handleEmailChange} className='long_inp' placeholder="Email *" />
                                                     </div>
 
                                                     <div className="buy_ticket_row">
-                                                        <input type="text" placeholder="Address Line 1 *" />
-                                                        <input type="text" placeholder="Address Line 2" />
-                                                        <input type="text" placeholder="City *" className='long_inp' />
+                                                        <input type="text" value={address1} onChange={handleAddress1Change} placeholder="Address Line 1 *" />
+                                                        <input type="text" value={address2} onChange={handleAddress2Change} placeholder="Address Line 2" />
+                                                        <input type="text" value={city} onChange={handleCityChange} placeholder="City *" className='long_inp' />
                                                     </div>
                                                     <div className="buy_ticket_row">
-                                                        <input type="text" placeholder="State *" />
-                                                        <input type="text" placeholder="Postal *" />
+                                                        <input type="text" value={state} onChange={handleStateChange} placeholder="State *" />
+                                                        <input type="number" value={postal} onChange={handlePostalChange} placeholder="Postal *" />
                                                     </div>
                                                     <div className="pay_opt">
                                                         <p className='yellow_cr'>Payment Options</p>
                                                         <div>
-                                                            <input type="radio" id="hue" name="pay_2" value="hue" checked />
+                                                            <input type="radio" id="hue" name="pay_2" value="hue" disabled />
                                                             <label htmlFor="hue">Apple Pay</label>
                                                         </div>
 
                                                         <div>
-                                                            <input type="radio" id="dewe" name="pay_2" value="dewe" />
+                                                            <input type="radio" id="dewe" name="pay_2" value="dewe"  checked/>
                                                             <label htmlFor="dewe">Credit/Debit Card</label>
                                                         </div>
                                                         <div className="card_info2">
-                                                            <input type="text" className="card_no" placeholder="Credit/Debit Card Number" />
-                                                            <input type="text" className="mm" placeholder="Exp" />
-                                                            <input type="text" className="mm" placeholder="CVV" />
+                                                            <input type="number" value={creditCardNumber} onChange={handleCreditCardNumberChange} className="card_no" placeholder="Credit/Debit Card Number" />
+                                                            <input type="date" value={creditCardExpiry} onChange={handleCreditCardExpiryChange} className="mm" placeholder="Exp" />
+                                                            <input type="number" value={creditCardCVV} onChange={handleCreditCardCVVChange}  className="mm" placeholder="CVV" />
                                                         </div>
                                                         <p className="card_infoend">By selecting “Buy Now” I agree to Event Visionary’s Terms and Conditions</p>
 
@@ -887,10 +1012,10 @@ import { useParams } from 'react-router-dom';
                                                     <div className="back_form">
                                                         <div className="back_btns">
                                                             <a href="#popup14"><FaChevronLeft className="back_icon" /></a>
-                                                            <a className="" href="#popup14">Back</a>
+                                                            <button className="btn" onClick={closePopup15}>Back</button>
 
                                                         </div>
-                                                        <a className="btn" href="#popup16">Get Tickets</a>
+                                                        <button className="btn" onClick={getTicketFinalButton}>Get Tickets</button>
                                                     </div>
                                                 </div>
 
@@ -908,26 +1033,28 @@ import { useParams } from 'react-router-dom';
                                         <div className="get_ticket_cart">
                                             <div className="get_ticket_overi pc_none">
 
-                                                <h1>Event Title</h1>
-                                                <p className="res_yellow">Saturday, July 5, 2025 at 7:30 pm PST</p>
+                                                <h1>{event.Event_Name}</h1>
+                                                <p className="res_yellow">{event.start_date} at {event.end_date}</p>
                                                 <h1>Order Summary</h1>
                                                 <p className="res_m">Ticket Type Name</p>
                                             </div>
                                             {/* <div className="get_ticket_carti res_none"></div> */}
-                                            <img src={EventImg} alt='' className='get_ticket_carti' />
+                                            <img src={eventImageUrl} alt='' className='get_ticket_carti' />
 
                                             <div className="cart_ticker">
                                                 <h2 className="res_none">Cart</h2>
                                                 <div className="order_sum_text">
-
-                                                    <div className="order_summary_data">
+                                                        {/* ****** */}
+                                                        {mainLevels.map( (mainLev, index) => {
+                                                            return (
+                                                    <div key={index} className="order_summary_data">
                                                         <p className="no">x1</p>
                                                         <div className="order_tinfo">
-                                                            <p className="type_name">Ticket Type Name </p>
-                                                            <p className="type_id">Seat ID or Table ID or Both</p>
+                                                            <p className="type_name">Ticket Type Name: {mainLev.label} </p>
+                                                            <p className="type_id">Seat ID {mainLev.seat} or Table ID {mainLev.table} or Both</p>
                                                         </div>
-                                                        <div className="order_pinfo">$25.00</div>
-                                                        <div className="order_trash">
+                                                        <div className="order_pinfo">${mainLev.price}</div>
+                                                        {/* <div className="order_trash">
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
                                                                 viewBox="0 0 15 15" fill="none">
                                                                 <path
@@ -938,46 +1065,28 @@ import { useParams } from 'react-router-dom';
                                                                 <path d="M9.14062 4.6875H8.67188V12.6562H9.14062V4.6875Z"
                                                                     fill="#FF0000" />
                                                             </svg>
-                                                        </div>
+                                                        </div> */}
                                                     </div>
-                                                    <div className="order_summary_data">
-                                                        <p className="no">x1</p>
-                                                        <div className="order_tinfo">
-                                                            <p className="type_name">Ticket Type Name </p>
-                                                            <p className="type_id">Seat ID or Table ID or Both</p>
-                                                        </div>
-                                                        <div className="order_pinfo">$25.00</div>
-                                                        <div className="order_trash">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
-                                                                viewBox="0 0 15 15" fill="none">
-                                                                <path
-                                                                    d="M3.04688 15H11.9531V2.34375H12.6562V1.875H9.375V0H5.625V1.875H2.34375V2.34375H3.04688V15ZM6.09375 0.46875H8.90625V1.875H6.09375V0.46875ZM11.4844 2.34375V14.5312H3.51562V2.34375H11.4844Z"
-                                                                    fill="#FF0000" />
-                                                                <path d="M6.32812 4.6875H5.85938V12.6562H6.32812V4.6875Z"
-                                                                    fill="#FF0000" />
-                                                                <path d="M9.14062 4.6875H8.67188V12.6562H9.14062V4.6875Z"
-                                                                    fill="#FF0000" />
-                                                            </svg>
-                                                        </div>
-                                                    </div>
+                                                            )
+                                                        })}
                                                 </div>
                                                 <div className="order_main_list">
                                                     <div className="order_list_items">
                                                         <div className="order_list_item">
                                                             <p>Subtotal</p>
-                                                            <p>$50.00</p>
+                                                            <p>${subTotalCart}</p>
                                                         </div>
                                                         <div className="order_list_item">
                                                             <p>Taxes</p>
-                                                            <p>$50.00</p>
+                                                            <p>${taxesCart}</p>
                                                         </div>
                                                         <div className="order_list_item">
                                                             <p>Service Fees</p>
-                                                            <p>$50.00</p>
+                                                            <p>${serviceFeeCart}</p>
                                                         </div>
                                                         <div className="order_list_item">
                                                             <p>Total</p>
-                                                            <p>$50.00</p>
+                                                            <p>${totalBillCart}</p>
                                                         </div>
                                                     </div>
 
@@ -1001,7 +1110,7 @@ import { useParams } from 'react-router-dom';
                                                 </a>
                                                 <div className="price_lable">
                                                     <label htmlFor="">Total:</label>
-                                                    <p>$25.00</p>
+                                                    <p>${totalBillCart}</p>
                                                 </div>
                                                 <div className="box">
                                                     <a className="btn sm" href="#popup16">Buy Now</a>
@@ -1012,16 +1121,16 @@ import { useParams } from 'react-router-dom';
 
                                     </div>
                                 </div>
-                                <div id="popup16" className="overlay">
+                                <div id="popup16" className={`overlay_14 ${popup16Class}`}>
 
                                     <div className="get_ticketp">
 
 
                                         <div className="get_ticket_over">
-                                            <a className="jclose" href="#">
+                                            <button className="jclose" onClick={closePopup16}>
                                                 <RiCloseFill color="#FAE100" className="Xmarks" />
 
-                                            </a>
+                                            </button>
                                             <a className="fclose pc_none" href="#popup15">
                                                 <IoIosArrowBack  className="fclose_i"/>
                                             </a>
@@ -1032,8 +1141,8 @@ import { useParams } from 'react-router-dom';
 
 
 
-                                                <h1>Event Title</h1>
-                                                <p className="res_yellow">Saturday, July 5, 2025 at 7:30 pm PST</p>
+                                                <h1>{event.Event_Name}</h1>
+                                                <p className="res_yellow">{event.start_date} at {event.start_time}</p>
                                                 <h1 >Order Confirmation</h1>
                                             </div>
 
@@ -1048,7 +1157,7 @@ import { useParams } from 'react-router-dom';
                                                         <p>Order # 001230034</p>
                                                     </div>
                                                     <div className="buy_ticket_row">
-                                                        <p>Total Paid: $62.50</p>
+                                                        <p>Total Paid: ${totalBillCart}</p>
                                                     </div>
                                                     <div className="buy_ticket_row res_none">
                                                         <p>Don’t forget to add this event to your calendar!</p>
