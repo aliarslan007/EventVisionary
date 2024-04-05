@@ -2388,6 +2388,7 @@ input:checked+.slider:before {
     display: flex;
     align-items: center;
     margin-top: 25px;
+    flex-direction: column;
     /* gap: 10px; */
     /* margin-top: -10px; */
 
@@ -2491,6 +2492,17 @@ input:checked+.slider:before {
     font-size: 15px;
     font-weight: 400;
     transition: all 0.4s ease;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+.side_bar_all_events{
+    font-size: 15px;
+    font-weight: 400;
+    transition: all 0.4s ease;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .sidebar.close .nav-links .inner_nav_links .inner_nav_items2 {
@@ -4913,12 +4925,15 @@ height: 27px;
 }
 
 .home-section {
-    position: relative;
-    color: white;
+    /* position: relative; */
+    /* color: white; */
     /* height: 165vh; */
-    width: calc(100% - 260px);
-    transition: all 0.5s ease;
+    width: 100%;
+    /* transition: all 0.5s ease; */
     border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     /* background-image: url(./imgs/Rectangle\ 2.png);
    background-repeat: no-repeat;
    background-size: cover; */

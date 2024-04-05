@@ -19,7 +19,7 @@ const AgeValue = {
     H: 'H',
 };
 
-const EventRegister = ({ title = '', label = '', href = '', showBackButton }) => {
+const EventRegister = ({ title = '', label = '', event_id='', href = '', showBackButton }) => {
 
     const navigate = useNavigate();
 
@@ -58,6 +58,9 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
     const [venuePostalCode, setVenuePostalCode] = useState('');
     const [venueCountry, setVenueCountry] = useState('united states');
     const [venueState, setVenueState] = useState('Delaware');
+    const [event, setEvent] = useState('');
+
+    
 
     const handleVenueNameChange = (e) => {
         setVenueName(e.target.value);
@@ -94,7 +97,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
         console.log(selectedAge);
         setSelectedAge(value);
     };
-    const [isChecked, setIsChecked] = useState(true);
+    const [isChecked, setIsChecked] = useState(false);
     const toggleOptions = () => {
         setIsChecked(!isChecked);
         setIsEventFree(isChecked);
@@ -109,6 +112,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
     const handleImageUpload = (e) => {
         const file = e.target.files[0]; 
         // Do something with the uploaded image file
+        console.log("file upload is ", file);
         setUploadedImage(file);
       };
       
@@ -221,9 +225,33 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
 
         const fetchData = async () => {
             try {
+                let  eventData = ""
                 const authToken = localStorage.getItem('authToken');
                 if (!authToken) {
                     throw new Error('Authentication token not found');
+                }
+
+                console.log("event id ", event_id);
+                // fetch event data if event_id is provided in props
+                if(event_id){
+                    // fetcb venue data
+                const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${event_id}`, {
+                    // method:'PACTH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                         Authorization: `Token ${authToken}`
+                    },
+                });
+
+                if (!eventResponse.ok) {
+                    throw new Error('Failed to fetch venue data');
+                }
+                else{
+
+                eventData = await eventResponse.json();
+                setEvent(eventData);
+                }
+
                 }
 
                 // fetcb venue data
@@ -240,12 +268,32 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                 
                 const venueData = await response.json();
 
-                if (venueData.length > 0) {
+                if (venueData.length >0) {
                     // Extract the first venue
                     const firstVenue = venueData[0];
+
+                    if (event_id){
+                        for (const venueName in venueData) {
+                            console.log("venueName.id:", venueData[venueName]);
+                            console.log("eventData.event.Venue_name:", (eventData.Venue_name));
+                            // If the value (id) matches typeId, return the corresponding typeName
+                            if (venueData[venueName].id === (eventData.Venue_name)) {
+                                console.log("venueName : .id:", venueData[venueName].id);
+                                console.log("venueName : .name:", venueData[venueName].venue_name);
+                                setEventVenue(venueData[venueName].venue_name);
+                                
+                            }
+                        }
+                    }
                     
-                    // Set the first venue to setEventVenue
-                    setEventVenue(firstVenue.venue_name);
+                    // if(isEventTypeEmpty){
+                        else{
+                            console.log("in venue else and event_id :", event_id);
+                            // console.log("venueData[venueName].venue_name :", venueData[venueName].venue_name);
+
+                            // Set the first venue to setEventVenue
+                            setEventVenue(firstVenue.venue_name);
+                        }
                 }
 
                 const venueMap = {};
@@ -271,12 +319,33 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
 
                 const eventTypesData = await eventTypesResponse.json();
                 // Construct a map of event type names to IDs
-                if (eventTypesData.length > 0) {
+                if (eventTypesData.length > 0 ) {
                     // Extract the first venue
                     const firstEventType = eventTypesData[0];
                     
+                    console.log("eventData:", eventData);
+                    console.log("eventTypesData:", eventTypesData);
+                    if ( event_id){
+                        for (const typeName in eventTypesData) {
+                            console.log("typeName.id:", eventTypesData[typeName]);
+                            console.log("eventData.event.event_type:", (eventData.event_type));
+                            // If the value (id) matches typeId, return the corresponding typeName
+                            if (eventTypesData[typeName].id === (eventData.event_type)) {
+                                console.log("type name : .id:", eventTypesData[typeName].id);
+                                console.log("type name : .name:", eventTypesData[typeName].name);
+                                setEventType(eventTypesData[typeName].name);
+                                
+                            }
+                        }
+                    }
+                    
+                    // if(isEventTypeEmpty){
+                        else{
+                        console.log("in !eventType");
+                        // Set the first venue to setEventVenue
+                        setEventType(firstEventType.name);
                     // Set the first venue to setEventVenue
-                    setEventType(firstEventType.name);
+                    }
                 }
 
                 const typeMap = {};
@@ -302,12 +371,27 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
 
                 const eventCategoriesData = await eventCategoriesResponse.json();
 
-                if (eventCategoriesData.length > 0) {
+                if (eventCategoriesData.length > 0 ) {
                     // Extract the first venue
                     const firstEventCategory = eventCategoriesData[0];
                     
-                    // Set the first venue to setEventVenue
-                    setEventCategory(firstEventCategory.name);
+                    if (event_id){
+                        for (const categoryName in eventCategoriesData) {
+                            console.log("categoryName.id:", eventCategoriesData[categoryName]);
+                            console.log("eventData.event.event_category:", (eventData.event_category));
+                            // If the value (id) matches typeId, return the corresponding typeName
+                            if (eventCategoriesData[categoryName].id === (eventData.event_category)) {
+                                console.log("categoryName : .id:", eventCategoriesData[categoryName].id);
+                                console.log("categoryName : .name:", eventCategoriesData[categoryName].name);
+                                setEventCategory(eventCategoriesData[categoryName].name);
+                                
+                            }
+                        }
+                    }
+                    
+                        else{// Set the first category to setEventCategory
+                            setEventCategory(firstEventCategory.name);
+                        }
                 }
 
                 const categoriesMap = {};
@@ -328,6 +412,127 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
         fetchData();
 
     }, []); // Empty dependency array ensures this runs only once when component mounts
+
+    useEffect(() => {
+        if(event_id){
+            const stripHtmlTags = (html) => {
+                const tempElement = document.createElement('div');
+                tempElement.innerHTML = html;
+                return tempElement.innerText; // or tempElement.textContent
+              };
+
+              const imageUrlToFile = async (imageUrl) => {
+                try {
+                  const response = await fetch(imageUrl);
+                  const blob = await response.blob();
+                  return new File([blob], 'image.jpg', { type: 'image/jpeg' });
+                } catch (error) {
+                  console.error('Error fetching image:', error);
+                  return null;
+                }
+              };
+
+              if (event.Event_description) {
+                setEventDescription(stripHtmlTags(event.Event_description));
+              }
+              else{
+                
+            setEventDescription('');
+              }
+            setEventTitle(event.Event_Name);
+            // setEventType(getTypeName(event.event_type));
+            // setEventCategory(getCategoryName(event.event_category));
+            // setEventVenue(getVenueName(event.Venue_name));
+            setEventNote(event.Event_ticketing_note);
+            setEventStartDate(event.start_date);
+            setEventStartTime(event.start_time);
+            setEventEndDate(event.end_date);
+            setEventEndTime(event.end_time);
+
+            // setIsEventFor18Plus(event.is_event_18);
+            // setIsEventFor21Plus(event.is_event_21);
+            // setIsEventForAllAges(event.is_event_for_all);
+
+            setIsReservedEvent(event.is_seating_reserved);
+            setIsEventFree(event.is_event_free);
+            setUseExistingChart(event.use_existing_chart);
+            // setEventImage(event.Event_image);
+            imageUrlToFile(event.Event_image)
+                .then((file) => {
+                setEventImage(file);
+                setUploadedImage(file);
+                })
+                .catch((error) => {
+                console.error('Error converting image URL to file:', error);
+                });
+            if(event.is_event_for_all){
+                setSelectedAge('P');
+            }
+            else if(event.is_event_18){
+                setSelectedAge('A');
+            }
+            else{
+                setSelectedAge('H');
+            }
+
+            if (event.is_event_free){
+                setIsEventFree(true);
+            }
+            if(event.is_seating_reserved && !event.is_event_free){
+                setIsChecked(true);
+            }
+
+            if (event.use_existing_chart){
+                setUseExistingChart(true);
+                setSelectedRadio('huey');
+                setCloneChart('');
+            }else{
+                setUseExistingChart(false);
+                setSelectedRadio('dewey');
+                setCloneChart(event.clone_chart_name);
+
+
+            }
+        }
+
+    }, [event]);
+
+    // function getTypeName(typeId) {
+    //     // console.log("type id :", typeId);
+    //     // // Iterate over the keys (names) of typeMap
+    //     // for (const typeName in eventTypesMap) {
+    //     //     console.log("eventTypesMap[typeName]:", eventTypesMap[typeName]);
+    //     //     // If the value (id) matches typeId, return the corresponding typeName
+    //     //     if (eventTypesMap[typeName] === typeId) {
+    //     //         console.log("type name :", typeName);
+    //     //         return typeName;
+    //     //     }
+    //     // }
+    //     // Return null if no match is found
+    //     return null;
+    // }
+    // function getCategoryName(categoryId) {
+    //     // Iterate over the keys (names) of typeMap
+    //     for (const categoryName in eventCategoriesMap) {
+    //         // If the value (id) matches typeId, return the corresponding typeName
+    //         if (eventCategoriesMap[categoryName] === categoryId) {
+    //             return categoryName;
+    //         }
+    //     }
+    //     // Return null if no match is found
+    //     return null;
+    // }
+    // function getVenueName(venueId) {
+    //     // Iterate over the keys (names) of typeMap
+    //     for (const venueName in venueNamesMap) {
+    //         // If the value (id) matches typeId, return the corresponding typeName
+    //         if (venueNamesMap[venueName] === venueId) {
+    //             return venueName;
+    //         }
+    //     }
+    //     // Return null if no match is found
+    //     return null;
+    // }
 
     const getEventTypeId = (eventName) => {
         return eventTypesMap[eventName];
@@ -402,6 +607,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
         event.preventDefault();
         const isValidStartDate = /^\d{4}-\d{2}-\d{2}$/.test(eventStartDate);
         const isValidEndDate = /^\d{4}-\d{2}-\d{2}$/.test(eventEndDate);
+        
         if (!eventTitle || !eventDescription || !eventStartDate || !eventStartTime || !eventEndDate || !eventEndTime || !uploadedImage || !isValidStartDate || !isValidEndDate) {
             // If any required field is null, generate an alert
             console.log("values are ");
@@ -447,7 +653,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
         const type = getEventTypeId(eventType);
         const cat = getEventCategoryId(eventCategory);
         const ven = getEventVenueId(eventVenue);
-
+       
         const body = {
             // Gather information from variables and construct the body
             Event_Name: eventTitle,
@@ -460,7 +666,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
             start_time: eventStartTime,
             end_date: eventEndDate,
             end_time: eventEndTime,
-            Event_image: uploadedImage,
+            Event_image: uploadedImage,            
             is_event_for_all: eventForAllAgesVar,
             is_event_18: eventForAll18PlusVar,
             is_event_21: eventForAll21PlusVar,
@@ -487,12 +693,19 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
         if (!authToken) {
             throw new Error('Authentication token not found');
         }
-        const response = await fetch('${process.env.REACT_APP_BASE_URL}/api/events/', {
-            method: 'POST',
-            // headers: {
-            //     'Content-Type': 'multipart/form-data',
-            //     // Add any additional headers if needed
-            // },
+        let url=`${process.env.REACT_APP_BASE_URL}/api/events/` , methodVar= 'POST';
+        if(event_id){
+            url = `${process.env.REACT_APP_BASE_URL}/api/events/${event_id}/`;
+            methodVar = 'PATCH';
+
+        }
+            const response = await fetch(url, {
+            method: methodVar,
+            
+            headers: {
+                // 'Content-Type': 'multipart/form-data',
+                // Add any additional headers if needed
+            },
             body: formData
         });
         if (!response.ok) {
@@ -506,14 +719,18 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
         
         const locationHeader = response.headers.get('Location');
         const eventId = locationHeader ? locationHeader.split('/').pop() : null;
-
+        alert("Event Updated Successfully ")
         console.log('Newly created event ID:', eventId);
         console.log("ne event is ");
         console.log(newEvent);
         console.log(newEvent.id);
         console.log(response);
-
-        navigate(`/DefineTicket/${newEvent.id}`);
+        if(event_id){
+            window.location.reload();
+        }
+        else{
+            navigate(`/DefineTicket/${newEvent.id}`);
+        }
         // event.target.submit();
         // window.location.reload(true);
 
@@ -553,7 +770,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                 venue_country: venueCountry,
                 venue_state: venueState
             });
-            const response = await fetch('${process.env.REACT_APP_BASE_URL}/api/venues/', {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -593,7 +810,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
             <form className="event_from" encType='multipart/form-data' onSubmit={handleSaveButtonClick}>
                 
                 <div className="area_form_left">
-                    {title && <h2>{title}</h2>}
+                    {title && <h2>{eventTitle}</h2>}
                     <div className="inputs_left">
 
                         <label >Event Title</label>
@@ -606,9 +823,9 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                             <div className="menus_wapper"> 
                                 <select name="eventType" id="eventType" className="new_menu" onChange={handleEventTypeChange} value={eventType}>
                                     <option value="f" selected disabled>Event Type</option>
-                                    {Array.from(eventTypes).map((eventType, index) => (
-                                    <option key={index} defaultValue={eventType.value} value={eventType.value} >
-                                            {eventType.name}
+                                    {Array.from(eventTypes).map((eventTypeElement, index) => (
+                                    <option key={index}  value={eventTypeElement.value} selected={eventTypeElement.value === eventType} >
+                                            {eventTypeElement.name}
                                         </option>
                                     ))}
                                 </select>
@@ -619,7 +836,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                             <div className="menus_wapper">  
                                 <select name="" id="" className="new_menu" value={eventCategory} onChange={handleEventCategoryChange}>
                                     {Array.from(eventCategories).map((eventCat, index) => (
-                                    <option key={index} defaultValue={eventCat.value} value={eventCat.value}>
+                                    <option key={index} value={eventCat.value}>
                                             {eventCat.name}
                                         </option>
                                     ))}
@@ -634,7 +851,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                             <div className="menus_wapper"> 
                                 <select name="" id="" className="new_menu" value={eventVenue} onChange={handleEventVenueChange}>
                                 {Array.from(venueNames).map((venueN, index) => (
-                                <option key={index} defaultValue={venueN.value} value={venueN.value}>
+                                <option key={index}  value={venueN.value}>
                                         {venueN.venue_name}
                                     </option>
                                 ))}
@@ -805,7 +1022,7 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                         <div className="age_row">
                             <label className="switch">
                                 <input type="checkbox" className="Present 2" name="attedence[]"
-                                    id="watch-mainn" defaultChecked={isEventFree} checked={isEventFree} onChange={handleIsEventFreeChange}  />
+                                    id="watch-mainn"  checked={isEventFree} onChange={handleIsEventFreeChange}  />
                                 <span className="slider round"></span>
                             </label>
                             <p>Make this event FREE</p>
@@ -817,7 +1034,6 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                                     className="Present 2"
                                     name="attedence[]"
                                     id="watch-main"
-                                    value="A"
                                     checked={isChecked}
                                     onChange={toggleOptions}
                                 />
@@ -868,9 +1084,10 @@ const EventRegister = ({ title = '', label = '', href = '', showBackButton }) =>
                         <img src={Upload_img} alt="Upload Icon"  /> 
                         {uploadedImage ? (
                             <img src={URL.createObjectURL(uploadedImage)} alt="Uploaded icon" className='img_inside_div' />
-                        ) : (
-                            <p>Drag and drop image here or click to upload</p>
-                        )}
+                            ) : (
+                                <p>Drag and drop image here or click to upload</p>
+                            )
+                            }
                         </label>
                     </div>
                     <div className="next_btn">

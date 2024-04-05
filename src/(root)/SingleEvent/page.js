@@ -130,17 +130,51 @@ import { useParams } from 'react-router-dom';
         console.log("in popup opening funcitons ")
         setPopup14Class('hide_popup');
     };
+    let timerInterval;
     const openPopup15 = () =>{
         if (selectedSeats <1){
             alert("you have not selected any seat. ")
             return
         }
-        console.log("in popup opening funcitons ");
-        getHoldTokenExtended();
-        setPopup15Class('show_popup');
+        
+        const targetTime = new Date();
+            targetTime.setMinutes(targetTime.getMinutes() + 30);
+
+            // Update the timer every second
+           
+            timerInterval = setInterval(() => {
+                updateTimer(targetTime, timerInterval);
+            }, 1000);
+
+            setPopup15Class('show_popup');
+            getHoldTokenExtended();
     } 
+    // show timer on final booking information page 
+    function updateTimer( targetTime, timerInterval) {
+        // Get the current date and time
+        const currentTime = new Date();
+      
+        // Calculate the remaining time
+        const remainingTime = targetTime - currentTime;
+      
+        // Check if the target time has passed
+        if (remainingTime <= 0) {
+          clearInterval(timerInterval);
+          closePopup15();
+          return;
+        }
+      
+        // Calculate hours, minutes, and seconds
+        const hours = Math.floor(remainingTime / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+      
+        // Display the remaining time in the div
+        document.getElementById('timer').textContent = `${hours}:${minutes}:${seconds}`;
+      }
     const closePopup15 = () =>{
-        console.log("in popup opening funcitons ")
+        console.log("in popup opening funcitons ");
+        clearInterval(timerInterval);
         setPopup15Class('hide_popup');
     };
     const openPopup16 = () =>{
@@ -200,9 +234,7 @@ import { useParams } from 'react-router-dom';
             // setPopup15Class('hide_popup');
             setPopup16Class('show_popup');
 
-        }
-        
-
+        } 
     }
     
 
@@ -657,6 +689,7 @@ import { useParams } from 'react-router-dom';
                  const tokenResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/extendholdtoken/`, {
                     method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                          Authorization: `Token ${authToken}`
                      },
                      body:requestBody
@@ -667,7 +700,7 @@ import { useParams } from 'react-router-dom';
                  const tokenData = await tokenResponse.json();
                  console.log("hold token is extended  is", tokenData);
                  console.log("hold token is   is", tokenData.token );
-                 setHoldToken(tokenData.token);
+                //  setHoldToken(tokenData.token);
 
         } catch (error) {
             // Handle network errors or other exceptions
@@ -948,7 +981,7 @@ import { useParams } from 'react-router-dom';
 
                                                 <h1>{event.Event_Name}</h1>
                                                 <p className="res_yellow">{event.start_date} at {event.end_date}</p>
-                                                <p>Time left: 13:19</p>
+                                                <p >Time left: <span id="timer"></span></p>
                                             </div>
 
                                             <div className="main_buy_form">

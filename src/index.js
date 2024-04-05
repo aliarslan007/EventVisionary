@@ -61,14 +61,14 @@ root.render(
         <Route path="/archived" element={<Archived />} />
         <Route path="/Draft" element={<Draft />} />
         <Route path="/eventdash" element={<EventDash />} />
-        <Route path="/sellTickets" element={<SellTickets />} />
-        <Route path="/managetwo" element={<Hold_Seats />} />
-        <Route path="/scanTickets" element={<ScanTickets />} />
-        <Route path="/attendees" element={<Attendees />} />
-        <Route path="/ManageOrder" element={<ManageOrder />} />
-        <Route path="/eventdetails" element={<Eventdetails />} />
-        <Route path="/ticketprices" element={<Ticketprices />} />
-        <Route path="/settingChart" element={<SettingChart />} />
+        <Route path="/sellTickets/:eventId" element={<SellTickets />} />
+        <Route path="/managetwo/:eventId" element={<Hold_Seats />} />
+        <Route path="/scanTickets/:eventId" element={<ScanTickets />} />
+        <Route path="/attendees/:eventId" element={<Attendees />} />
+        <Route path="/ManageOrder/:eventId" element={<ManageOrder />} />
+        <Route path="/eventdetails/:eventId" element={<Eventdetails />} />
+        <Route path="/ticketprices/:eventId" element={<Ticketprices />} />
+        <Route path="/settingChart/:eventId" element={<SettingChart />} />
         <Route path="/venues" element={<Venues />} />
         <Route path="/TrialOPT" element={<TrialOPT />} />
         <Route path="/reports" element={<Reports />} />

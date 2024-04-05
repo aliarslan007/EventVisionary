@@ -53,7 +53,7 @@ const ShareEvent = () => {
                 // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
                 
                 // Fetch user data
-                const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${eventId}`, {
+                const eventResponse = await fetch(`http://127.0.0.1:8000/api/events/${eventId}`, {
                     headers: {
                         Authorization: `Token ${authToken}`
                     }

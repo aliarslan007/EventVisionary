@@ -2,7 +2,6 @@
 import Home from "./(root)/Home.js";
 import './App.css'
 
-
 const App = () => {
   return (
     <>

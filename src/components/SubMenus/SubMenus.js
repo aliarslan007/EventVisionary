@@ -8,15 +8,68 @@ const SubMenus = () => {
 
   const [isMainOpen, setIsMainOpen] = useState(false);
   const [isEventOpen, setIsEventOpen] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [openEvent, setOpenEvent] = useState(null);
+  const [expandedEvent, setExpandedEvent] = useState(null);
+
+
+  // Function to toggle the event's expansion state
+  const toggleEvent = (eventId) => {
+    if (expandedEvent === eventId) {
+      // If the clicked event is already expanded, collapse it
+      setExpandedEvent(null);
+    } else {
+      // If a different event is clicked, expand it and collapse others
+      setExpandedEvent(eventId);
+    }
+  };
+
 
   const toggleMain = () => {
     setIsMainOpen(!isMainOpen);
   };
 
-  const toggleEvent = () => {
-    setIsEventOpen(!isEventOpen);
-  };
+    useEffect(() => {
+      const fetchEventData= async () => {
+          const authToken = localStorage.getItem('authToken');
+          if (!authToken) {
+              throw new Error('Authentication token not found');
+          }
+          const authUserId = localStorage.getItem('authUserId');
+          console.log("token is ", authToken);
+          console.log("authUserId is ", authUserId);
   
+          if (!authUserId) {
+              throw new Error('Authentication authUserId not found');
+          }
+          const requestBody = JSON.stringify({
+            user_id: authUserId
+        });
+          // fetch event with eventId
+          // const EventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventsoforg/${eventId}/`, {
+          const EventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventsofuser/`, {
+
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: requestBody
+          });
+  
+          // Check if the request was successful (status code 2xx)
+          if (EventResponse.ok) {
+              const eventResponseData = await EventResponse.json(); // Parse the response JSON
+              setEvents(eventResponseData.events);
+  
+              // Optionally, you can return the response data or perform other actions here
+          } else {
+              console.log("event retrieving error ", EventResponse.status)
+          }    
+      }
+      fetchEventData();
+      }, []);
+
+      
   return (
 
     <div className="iocn-link">
@@ -42,26 +95,33 @@ const SubMenus = () => {
           <ul className="upper_nav_i panel inner_nav_items2">
             <a href="/archived" className="inner_link_i">Archived</a>
             <a href="/Draft" className='inner_link_i'>Draft</a>
-            <a href="/eventdash" className='inner_link_i'>
-              <li className=" inner_flex Exinner_flex">
-                Event Title
-                <FaChevronDown className="low_event" onClick={toggleEvent} />
-              </li>
+            {events.map(event => (
+                <li key={event.id} className="inner_flex Exinner_flex">
+                  <div className='side_bar_all_events'>
+                    <a href="/eventdash" >
+                        <span>{event.Event_Name}</span>
+                    </a>
+                    <span><FaChevronDown
+                      className="low_event"
+                      onClick={() => toggleEvent(event.id)}
+                    /></span>
+                  </div>
+                    
+                    {expandedEvent === event.id && (
+                        <ul className="inner_nav_items panel2">
+                            <li className="inner_nav_item"><a href={`/sellTickets/${event.id}`}>Sell Tickets</a></li>
+                            <li className="inner_nav_item"><a href={`/managetwo/${event.event_id}`}>Hold Seats</a></li>
+                            <li className="inner_nav_item"><a href={`/scanTickets/${event.id}`}>Scan Tickets</a></li>
+                            <li className="inner_nav_item"><a href={`/attendees/${event.id}`}>Attendees</a></li>
+                            <li className="inner_nav_item"><a href={`/ManageOrder/${event.id}`}>Manage Orders</a></li>
+                            <li className="inner_nav_item"><a href={`/eventdetails/${event.id}`}>Event Details</a></li>
+                            <li className="inner_nav_item"><a href={`/ticketprices/${event.id}`}>Ticket Prices</a></li>
+                            <li className="inner_nav_item"><a href={`/settingChart/${event.id}`}>Seating Chart</a></li>
+                        </ul>
+                    )}
+                </li>
+            ))}
 
-            </a>
-            {isEventOpen && (
-
-              <ul className="inner_nav_items panel2">
-                <li className="inner_nav_item"><a href="/sellTickets" className="">Sell Tickets</a></li>
-                <li className="inner_nav_item"><a href="/managetwo">Hold Seats</a></li>
-                <li className="inner_nav_item"><a href="/scanTickets">Scan Tickets</a></li>
-                <li className="inner_nav_item"><a href="/attendees">Attendees</a></li>
-                <li className="inner_nav_item"><a href="/ManageOrder">Manage Orders</a></li>
-                <li className="inner_nav_item"><a href="/eventdetails" >Event Details</a></li>
-                <li className="inner_nav_item"><a href="/ticketprices">Ticket Prices</a></li>
-                <li className="inner_nav_item"><a href="/settingChart">Seating Chart</a></li>
-              </ul>
-            )}
           </ul>
         )}
       </div>
