@@ -156,7 +156,7 @@ const DefineTicket = () => {
                                         href="/ShareEvent">4. share Event
                                     </a>
                                 </div>
-                                <TicketPrice label='Next' href='/PublishEvent' eventId={eventId} eventStartDate={eventStartDate} eventEndDate={eventEndDate} />
+                                <TicketPrice status={'New'} label='Next' href='/PublishEvent' eventId={eventId} eventStartDate={eventStartDate} eventEndDate={eventEndDate} />
 
                             </div>
 

@@ -7,13 +7,16 @@ import React, { useEffect, useState } from 'react'
 import './index.css'
 import { BsX, BsList } from 'react-icons/bs'
 import { FaChevronDown } from 'react-icons/fa'
-
+import { useNavigate } from 'react-router-dom';
 
 
 const Header = () => {
+    
+    const navigate = useNavigate();
     const [selectedLink, setSelectedLink] = useState('/'); // Initial selected link is '/'
     const [isOpen, setIsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [log_button, setLog_button] = useState('Logout');
 
 
     const links = [
@@ -25,6 +28,14 @@ const Header = () => {
     ];
 
     useEffect(() => {
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) {
+            setLog_button('Login');
+        }
+        else{
+            setLog_button('Logout')
+
+        }
         const handleScroll = () => {
             const scrollPosition = window.scrollY;
             setIsScrolled(scrollPosition >= 100);
@@ -42,7 +53,11 @@ const Header = () => {
     };
 
     const closeMenu = () => {
-        setIsOpen(false);
+        if (log_button.includes('Logout')){
+            localStorage.removeItem('authToken');
+            navigate(`/Login/`);
+            setIsOpen(false);
+        }
     };
     const [isDropdownVisible, setDropdownVisible] = useState(false);
 
@@ -95,7 +110,7 @@ const Header = () => {
                     <li><a href='/' className={addYellowCrrClass('/')}>Home</a></li>
                     <li><a href='/Pricing' className={addYellowCrrClass('/Pricing')}>Pricing</a></li>
                     <li><a href='/EventsPage' className={addYellowCrrClass('/EventsPage')}>EVENTS</a></li>
-                    <li><a href='/Login' className={`login-button pc_none ${addYellowCrrClass('/Login')}`}>Login</a></li>
+                    <li><a href='/Login' className={`login-button pc_none ${addYellowCrrClass('/Login')}`}>{log_button}</a></li>
                     <li><a href='/NewEvent' className={`li_active ${addYellowCrrClass('/NewEvent')}`}>CREATE EVENT</a></li>
                 </ul>
             </div>
@@ -118,7 +133,7 @@ const Header = () => {
                 )}
             </div>
 
-            <a href="/Login" className="login-button  res_none" onClick={closeMenu}>Login</a>
+            <a href="/Login" className="login-button  res_none" onClick={closeMenu}>{log_button}</a>
         </nav>
     )
 }

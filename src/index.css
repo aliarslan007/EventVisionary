@@ -1666,8 +1666,18 @@ input:checked+.slider:before {
     align-items: center;
     gap: 10px;
     font-size: 14px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 
+}
+.color_black_bg_white{
+    background: rgba(37, 37, 31, 0.50);
+    color: white;
+}
+
+.desc_event .jodit-container,
+.desc_event .jodit-container * {
+    background-color: black !important; /* Change background color */
+    color: white !important; /* Change text color */
 }
 
 
@@ -3761,6 +3771,21 @@ height: 27px;
     padding-left: 20px;
     z-index: 1;
 }
+/* changes  */
+.add_venue form{
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    width: 100%;
+    gap: 20px;
+}
+
+.add_venue form input{
+    background: white;
+    padding: 5px;
+    color: black;
+}
+
 
 .venueForm {
     display: flex;
@@ -3783,6 +3808,7 @@ height: 27px;
     background: white;
     padding: 5px;
     color: black;
+
 }
 
 .sub_venue {
@@ -4149,6 +4175,7 @@ height: 27px;
     border: none;
     color: black;
     border-radius: 25px;
+    
 }
 
 .my_acc_section {
@@ -5160,6 +5187,12 @@ height: 27px;
    border: none;
    padding: 10px 15px;
    margin-top: 10px;
+}
+.venueForm input {
+    background: white;
+    padding: 5px;
+    color: black;
+
 }
 .events_inputs{
    display: flex;

@@ -64,7 +64,7 @@ const SellTicketPop = ({eventToken="", handleAddMainLevel,handleRemoveMainLevel,
 
                 const newEvent = eventData.event;
                 // const baseURL = window.location.origin; // Your base URL
-                const baseURL = "http://127.0.0.1:8000/"
+                const baseURL = "${process.env.REACT_APP_BASE_URL}/"
                 let imageURL = newEvent.Event_image;
                 console.log("1 : imageURL: ", imageURL);
                 if (imageURL.startsWith('/images')) {

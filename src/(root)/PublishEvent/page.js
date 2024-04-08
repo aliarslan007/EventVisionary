@@ -43,7 +43,7 @@ const PublishEvent = () => {
             }
             // fetch event with eventId
             const EventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${eventId}/`, {
-            method: 'GET',
+            // method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             }

@@ -23,7 +23,7 @@ import { useParams } from 'react-router-dom';
     
     const [pricing, setPricing] = useState([]);
     const [boxOfficeCategories, setBoxOfficeCategories] = useState([]);
-    let base_api_url="http://127.0.0.1:8000";
+    let base_api_url=`${process.env.REACT_APP_BASE_URL}`;
     const prevElement = useRef();
     const prevLabel = useRef();
 
@@ -240,24 +240,31 @@ import { useParams } from 'react-router-dom';
 
     
 
-    const handleAddMainLevel = useCallback((label, seat, table, price, full_label) => {
-        
-        setMainLevels(prevMainLevels => {
-            const newMainLevel = { label, seat, table, price, full_label };
-            console.log("Updated mainLevels:", [...prevMainLevels, newMainLevel]);
-            return [...prevMainLevels, newMainLevel];
-        });
-        setSelectedSeats(prevSelectedSeats => {
-            const newSelectedSeats = { label, seat, table, price, full_label };
-            console.log("Updated newSelectedSeats:", [...prevSelectedSeats, newSelectedSeats]);
-            return [...prevSelectedSeats, newSelectedSeats];
-        });
+    const handleAddMainLevel = useCallback((object) => {
+
+        console.log(" mainlevels is ", mainLevels);
+        console.log(" object is ", object);
+
+    const label_val = object.label;
+
+    setMainLevels(prevMainLevels => {
+        const newMainLevel = { label: label_val }; // Correctly construct the new object
+        console.log("Updated mainLevels:", [...prevMainLevels, newMainLevel]);
+        return [...prevMainLevels, newMainLevel];
+    });
+        // setSelectedSeats(prevSelectedSeats => {
+        //     const newSelectedSeats = { label, seat, table, price, full_label };
+        //     console.log("Updated newSelectedSeats:", [...prevSelectedSeats, newSelectedSeats]);
+        //     return [...prevSelectedSeats, newSelectedSeats];
+        // });
     }, [mainLevels]);
 
+    useEffect(() => {
+        console.log("MainLevels after update:", mainLevels);
+    }, [mainLevels]);
 
-    const handleRemoveMainLevelByLabel  =useCallback( (full_label) => {
+    const handleRemoveMainLevelByLabel  = (full_label) => {
         console.log("Removing main level  ::", full_label);
-        console.log("typeof Removing main level  ::", typeof(full_label));
         console.log("mainLevels:", mainLevels);
     
         const isLabelFound = mainLevels.some(level => level.full_label === full_label);
@@ -282,7 +289,7 @@ import { useParams } from 'react-router-dom';
         } else {
             console.log("Label not found in mainLevels");
         }   
-    }, [mainLevels]);
+    };
     
     const calculateSubtotal = (selectedSeats) => {
         // Logic to calculate subtotal
@@ -419,7 +426,7 @@ import { useParams } from 'react-router-dom';
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // base_api_url = "http://127.0.0.1:8000";
+                // base_api_url = "${process.env.REACT_APP_BASE_URL}";
                 
                 // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
                 const authToken = localStorage.getItem('authToken');
@@ -436,7 +443,7 @@ import { useParams } from 'react-router-dom';
                 console.log("url is : ", (`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`));
                 console.log("static url is : ", (`${base_api_url}/api/eventofuniquetoken/`));
 
-                // const eventResponse = await fetch(`http://127.0.0.1:8000/api/eventofuniquetoken/`, {
+                // const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`, {
                     const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`, {
                     method: 'POST',
                     headers: {
@@ -794,6 +801,7 @@ import { useParams } from 'react-router-dom';
                                             <img alt='' src={Render_mobile_only} className="res_triangle pc_none" /> */}
                                             <SeatsioSeatingChart 
                                                 workspaceKey="d7e614a0-9aab-4e68-b91a-299311ea1a62"
+                                                onObjectDeselected={(deselectedObject) => handleRemoveMainLevelByLabel(deselectedObject.label)}                                                onObjectSelected={handleAddMainLevel}
                                                 event={event.event_id}
                                                 pricing={pricing}
                                                 unavailableCategories={boxOfficeCategories}
@@ -801,76 +809,9 @@ import { useParams } from 'react-router-dom';
                                                 showSectionPricingOverlay = {true}
                                                 session='manual'
                                                 holdToken={holdToken}
-                                                // mainLevels={memoizedMainLevels}   // Pass mainLevels as a prop
-                                                handleRemoveMainLevelByLabel={handleRemoveMainLevelByLabel}  // Pass the function reference
-                                                handleAddMainLevel={handleAddMainLevel} 
-                                                onObjectSelected=  { async function (object)
-                                                    {
-                                                    let ticketTypes=""
-                                                    if(object.pricing.ticketTypes){
-                                                        ticketTypes = object.pricing.ticketTypes;
-                                                    }
-                                                    console.log("object is ",object );
-                                                    let seat_sub_category = ''
-                                                    let seat_category = ''
-                                                    let seat_label=''
-                                                    let seat_type=''
-                                                    let price=0
-                                                    seat_type = object.objectType;
-                                                    console.log("seat type is ", seat_type);
-                                                    
-                                                    seat_label=object.label;
-                                                    const [table, seatNumber] = seat_label ? seat_label.split('-') : ["", ""];
-                                                    seat_category=object.category.label;
-
-                                                        if (seat_type.includes("Seat"))
-                                                        {
-                                                            if (ticketTypes) {
-                                                                seat_sub_category=object.selectedTicketType;
-
-                                                                for (const ticketVar of ticketTypes) {
-                                                                    if (seat_sub_category.includes(ticketVar.ticketType)) {
-                                                                        price= ticketVar.price
-                                                                    }
-                                                                }
-                                                                console.log("seat_category is ",seat_category );
-                                                                console.log("seat_sub_category is ",seat_sub_category );
-                                                                console.log("seat_label is ",seat_label );
-                                                                console.log("price is ",price );
-                                                            }
-                                                            else {
-                                                                price = object.pricing.price;
-                                                                
-                                                                console.log("seat_category is ",seat_category );
-                                                                console.log("seat_sub_category is ",seat_sub_category );
-                                                                console.log("seat_label is ",seat_label );
-                                                                console.log("price is ",price );
-                                                            }
-                                                        }
-                                                        else{
-                                                            price = object.pricing.price;
-                                                            
-                                                            console.log("seat_category is ",seat_category );
-                                                            console.log("seat_sub_category is ",seat_sub_category );
-                                                            console.log("seat_label is ",seat_label );
-                                                            console.log("price is ",price ); 
-                                                        }
-                                                    const label = seat_sub_category ? seat_sub_category : seat_category;
-
-                                                    handleAddMainLevel(label, seatNumber, table, price, seat_label);
-
-                                                    }
-                                                }
-
-                                                onObjectDeselected={ async function (object)
-                                                    {
-                                                        // alert("it is in deselect")
-                                                        handleRemoveMainLevelByLabel(object.label) ;
-                                                    }
-                                                } 
                                                 region="eu"
-                                                
-                                            />
+                                                />
+                                               
                                             </div>
                                             <div className="promo_ticket">
                                                 <form action="" className="promo_cl res_none">

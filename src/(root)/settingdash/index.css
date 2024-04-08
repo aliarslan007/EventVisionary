@@ -32,10 +32,11 @@
     gap: 10px;
 }
 .setting_logo{
-    width: 150px;
+    /* width: 150px; */
     height: 150px;
     border: 1px dotted #FFE100;
     border-radius: 10px;
+    overflow: hidden;
 }
 .setting_pay{
     border-top: 1px solid #636363;

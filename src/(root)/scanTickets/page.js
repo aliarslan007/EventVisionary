@@ -1,7 +1,7 @@
 'use client'
 import ArchivedBack from '../../components/ArchivedBack/ArchivedBack'
 import MainMenusEx from '../../components/MainMenusEx/MainMenusEx'
-import { Silder_icon } from '../../components/SubMenus/SubMenus'
+import SubMenus, { Silder_icon } from '../../components/SubMenus/SubMenus'
 import React, { useRef, useCallback, useState } from 'react';
 import { CiCirclePlus } from 'react-icons/ci'
 import { FaRegCalendarAlt, FaChevronDown } from 'react-icons/fa'
@@ -9,8 +9,12 @@ import { FaChevronLeft } from 'react-icons/fa6'
 import { IoSpeedometerOutline } from 'react-icons/io5'
 import Webcam, { WebcamProps } from 'react-webcam';
 import RootLayout from '../layout';
+import { QrReader } from 'react-qr-reader';
+import QRScanner from 'react-qr-scanner';
 
 const ScanTickets = () => {
+    
+    const [qrCodeValue, setQrCodeValue] = useState('');
     const [isMainOpen, setIsMainOpen] = useState(true);
     const [isEventOpen, setIsEventOpen] = useState(true);
 
@@ -44,6 +48,64 @@ const ScanTickets = () => {
         }
     };
 
+
+     
+    const handleScan = async (data) => {
+        if (data) {
+
+            try{
+                const authToken = localStorage.getItem('authToken');
+                    if (!authToken) {
+                        throw new Error('Authentication token not found');
+                }
+                const authUserId = localStorage.getItem('authUserId');
+                console.log("token is ", authToken);
+                console.log("authUserId is ", authUserId);
+    
+                if (!authUserId) {
+                    throw new Error('Authentication authUserId not found');
+                }
+    
+                const requestBody = JSON.stringify({
+                    qr_code : parseInt(data.text),
+                });
+                // fetch event with eventId
+                const scanResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/scantickets/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`
+                },
+                body: requestBody
+                });
+        
+                // Check if the request was successful (status code 2xx)
+                if (scanResponse.ok) {
+                    const scanResponseData = await scanResponse.json(); // Parse the response JSON
+                    alert('QR Code Scanned successfully: \n ', scanResponseData);
+                    // navigate(`/ShareEvent/${eventId}`);
+                    // Optionally, you can return the response data or perform other actions here
+                } else {
+                    const scanResponseDataBody = await scanResponse.text();
+                    console.log(" error occured : ",({scanResponseDataBody}) );
+                    return;
+                }
+    
+            } // try ends here
+            catch(error){
+                console.log("error scanning Qr Code ", error);
+            }
+
+          setQrCodeValue(data);
+          // Call your REST API here with the extracted QR code value
+        }
+      };
+    
+      const handleError = (err) => {
+        console.error(err);
+      };
+
+
     return (
         <>
             <RootLayout>
@@ -70,54 +132,7 @@ const ScanTickets = () => {
                                         </div>
                                     </li>
                                     <li>
-                                        <div className="iocn-link">
-                                            <div className="inner_nav_links " id="">
-                                                <div className="flex_option_row accordion">
-
-                                                    <FaRegCalendarAlt className="menu_dash_i yellow_m" />
-                                                    <div className="Event_Title  ">
-                                                        <div className=" inner_flex">
-                                                            <a href="/Event" className='yellow_m'>
-
-                                                                EVENTS
-                                                            </a>
-                                                        </div>
-                                                        {/* <i className='bx bxs-chevron-down' id="myElement" onClick={toggleAccordion}></i> */}
-                                                        <FaChevronDown className="icon_sub_menu" onClick={toggleMain} />
-
-                                                    </div>
-                                                </div>
-                                                {isMainOpen && (
-                                                    <ul className="upper_nav_i panel inner_nav_items2">
-                                                        <a href="/archived" className="inner_link_i ">Archived</a>
-                                                        <a href="/Draft" className='inner_link_i'>Draft</a>
-                                                        <div className='Exinner_flex '>
-
-                                                            <a href="/eventdash" className='inner_link_i'>
-                                                                <li className=" inner_flex Exinner_flex yellow_m">
-                                                                    Event Title
-                                                                </li>
-
-                                                            </a>
-                                                            <FaChevronDown className="low_event" onClick={toggleEvent} />
-                                                        </div>
-                                                        {isEventOpen && (
-
-                                                            <ul className="inner_nav_items panel2">
-                                                                <li className="inner_nav_item "><a href="/sellTickets" >Sell Tickets</a></li>
-                                                                <li className="inner_nav_item"><a href="/managetwo">Hold Seats</a></li>
-                                                                <li className="inner_nav_item"><a href="/scanTickets" className='yellow_m'>Scan Tickets</a></li>
-                                                                <li className="inner_nav_item"><a href="/attendees">Attendees</a></li>
-                                                                <li className="inner_nav_item"><a href="/ManageOrder">Manage Orders</a></li>
-                                                                <li className="inner_nav_item"><a href="/eventdetails" >Event Details</a></li>
-                                                                <li className="inner_nav_item"><a href="/ticketprices">Ticket Prices</a></li>
-                                                                <li className="inner_nav_item"><a href="/settingChart">Seating Chart</a></li>
-                                                            </ul>
-                                                        )}
-                                                    </ul>
-                                                )}
-                                            </div>
-                                        </div>
+                                      <SubMenus/>
                                     </li>
                                     <MainMenusEx />
 
@@ -138,14 +153,14 @@ const ScanTickets = () => {
                                                 {isCameraOn ? 'Close Camera' : 'Open Camera'}
                                             </button>
                                             {isCameraOn && (
-                                                <Webcam
-                                                    audio={false}
-                                                    ref={webcamRef}
-                                                    screenshotFormat="image/jpeg"
-                                                    width={640}
-                                                    height={480}
-                                                />
-                                            )}
+                                                
+                                                <QRScanner
+                                                    delay={300}
+                                                    onError={handleError}
+                                                    onScan={handleScan}
+                                                    style={{ width: '640' , height: '480'}}
+                                                    />
+                                                )}
                                             {isCameraOn && <button onClick={capture}>Capture Image</button>}
                                         </div>
                                         <video id="preview"></video>

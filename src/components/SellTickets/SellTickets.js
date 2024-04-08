@@ -5,6 +5,8 @@ import "./index.css";
 import SellTicketwarp from '../SellTicketwarp/SellTicketwarp';
 
 const SellTicketsCom = ({ title = "", showBackButton }) => {
+
+    
     const handlePaymentChange = (event) => {
         setPaymentOption(event.target.value);
     };
@@ -21,6 +23,10 @@ const SellTicketsCom = ({ title = "", showBackButton }) => {
     const increment = () => {
         setCount(count + 1);
     };
+
+   
+
+
     return (
         <div className="conatiner_warp">
             {showBackButton && <ArchivedBack />}

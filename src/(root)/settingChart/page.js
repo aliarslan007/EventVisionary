@@ -73,7 +73,7 @@ const SettingChart = () => {
             const requestBody = JSON.stringify({
                 chart_key : chart_Key,
             });
-            console.log("body is ", requestBody);
+            console.log("body is 1", requestBody);
             console.log("eventId is ", eventId);
             // fetch event with eventId
             const publishChartResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/publishchart/`, {

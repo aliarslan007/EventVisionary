@@ -1,11 +1,14 @@
 // import Link from 'next/link'
-import React, { useState, useEffect } from 'react'
+import React, {useRef, useState, useEffect } from 'react'
 import { CiCirclePlus } from 'react-icons/ci'
 import ArchivedBack from '../ArchivedBack/ArchivedBack.js';
 // import Image from 'next/image';
 import { Upload_img } from '../../public';
 import { useNavigate } from 'react-router-dom';
-
+// import { EditorState, convertToRaw, convertFromRaw } from 'draft-js';
+// import { Editor } from 'react-draft-wysiwyg';
+// import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import JoditEditor from 'jodit-react';
 // var AgeValue;
 // (function (AgeValue) {
 //     AgeValue["P"] = "P";
@@ -22,12 +25,19 @@ const AgeValue = {
 const EventRegister = ({ title = '', label = '', event_id='', href = '', showBackButton }) => {
 
     const navigate = useNavigate();
+    const editor = useRef(null);
+	const [content, setContent] = useState('');
+
+    // const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
+    // const description = JSON.stringify(convertToRaw(editorState.getCurrentContent()));
+    // const initialEditorState = EditorState.createWithContent(convertFromRaw(JSON.parse(description)));
 
     const [eventTitle, setEventTitle] = useState('');
     const [eventType, setEventType] = useState('');
     const [eventCategory, setEventCategory] = useState('');
     const [eventVenue, setEventVenue] = useState('');
-    const [eventDescription, setEventDescription] = useState('');
+    // const [eventDescription, setEventDescription] = useState(() => EditorState.createEmpty());
+    const [eventDescription, setEventDescription] = useState();
     const [eventNote, setEventNote] = useState('');
     const [eventStartDate, setEventStartDate] = useState('');
     const [eventStartTime, setEventStartTime] = useState('');
@@ -431,6 +441,9 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
                   return null;
                 }
               };
+            setContent((event.Event_description));
+
+            // setEventDescription(EditorState.createWithContent(convertFromRaw(JSON.parse(event.Event_description))));
 
               if (event.Event_description) {
                 setEventDescription(stripHtmlTags(event.Event_description));
@@ -660,7 +673,8 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
             event_type: type,
             event_category: cat,
             Venue_name: ven,
-            Event_description: eventDescription,
+            // Event_description: eventDescription,
+            Event_description: content,
             Event_ticketing_note: eventNote,
             start_date: eventStartDate,
             start_time: eventStartTime,
@@ -940,8 +954,22 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
 
                         </div>
                     </div>
-                    <label htmlFor="">Tell your customers a little bit about this event</label> 
-                    <textarea name="eventDesc" id="eventDesc" className="desc_event" value={eventDescription} onChange={handleEventDescriptionChange}></textarea>
+                    <label htmlFor="">
+                        Tell your customers a little bit about this event
+                        </label> 
+                        <div className="desc_event " >
+                                
+                            <JoditEditor
+                                ref={editor}
+                                value={content}
+                                style={{ backgroundColor: 'black', color: 'white' }}
+                                // config={config}
+                                // tabIndex={1} // tabIndex of textarea
+                                // onBlur={newContent => setContent(newContent)} // preferred to use only this option to update the content for performance reasons
+                                onChange={newContent => setContent(newContent)}
+                            />
+                    </div>
+                    {/* <textarea name="eventDesc" id="eventDesc" className="desc_event" value={eventDescription} onChange={handleEventDescriptionChange}></textarea> */}
                     <label htmlFor=""   >Add a special note to your tickets</label>
                     <textarea name="" id=""
                         placeholder="This note will appear on your customer’s tickets under their order information"
@@ -1081,11 +1109,15 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
                     <div className="file_form cursor_pointer" onDragOver={handleDragOver} onDrop={handleDrop}>
                         <input type="file" id="fileInput" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
                         <label htmlFor="fileInput" className='cursor_pointer img_inside_div'>
-                        <img src={Upload_img} alt="Upload Icon"  /> 
+                        
+                        {/* <img src={Upload_img} alt="Upload Icon"  />  */}
                         {uploadedImage ? (
                             <img src={URL.createObjectURL(uploadedImage)} alt="Uploaded icon" className='img_inside_div' />
                             ) : (
+                                <div>
+                                <img src={Upload_img} alt="Upload Icon" />
                                 <p>Drag and drop image here or click to upload</p>
+                            </div>
                             )
                             }
                         </label>
