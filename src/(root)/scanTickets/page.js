@@ -9,8 +9,6 @@ import { FaChevronLeft } from 'react-icons/fa6'
 import { IoSpeedometerOutline } from 'react-icons/io5'
 import Webcam, { WebcamProps } from 'react-webcam';
 import RootLayout from '../layout';
-import { QrReader } from 'react-qr-reader';
-import QRScanner from 'react-qr-scanner';
 
 const ScanTickets = () => {
     
@@ -154,10 +152,7 @@ const ScanTickets = () => {
                                             </button>
                                             {isCameraOn && (
                                                 
-                                                <QRScanner
-                                                    delay={300}
-                                                    onError={handleError}
-                                                    onScan={handleScan}
+                                                <Webcam
                                                     style={{ width: '640' , height: '480'}}
                                                     />
                                                 )}

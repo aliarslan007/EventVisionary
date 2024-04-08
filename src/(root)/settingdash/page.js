@@ -362,7 +362,7 @@ const Settingdash = () => {
 
             // fetch billinginfo data
              // Fetch user data
-             const requestBody =JSON.stringify({
+            const requestBody = JSON.stringify({
                 user_id : authUserId
               });
              const billinginfoResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/billlinginfoofuser/`, {
@@ -379,7 +379,7 @@ const Settingdash = () => {
             else{
                 const billinginfoResponseData = billinginfoResponse.json()
                 const billingInfo_Data = billinginfoResponseData.billingInfo
-                console.log("billing info is ",billinginfoResponseData.billingInfo)
+                console.log("billing info is ", billinginfoResponseData.billingInfo);
 
 
             }
