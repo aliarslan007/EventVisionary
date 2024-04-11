@@ -109,15 +109,19 @@ const SubMenus = () => {
                     
                     {expandedEvent === event.id && (
                         <ul className="inner_nav_items panel2">
-                            <li className="inner_nav_item"><a href={`/sellTickets/${event.id}`}>Sell Tickets</a></li>
-                            <li className="inner_nav_item"><a href={`/managetwo/${event.event_id}`}>Hold Seats</a></li>
+                            <li className="inner_nav_item"><a href={`/sellTickets/${event.unique_token}`}>Sell Tickets</a></li>
+                            {event.is_seating_reserved === true && (
+                                <li className="inner_nav_item"><a href={`/managetwo/${event.event_id}`}>Hold Seats</a></li>
+                            )}                            
                             <li className="inner_nav_item"><a href={`/scanTickets/${event.id}`}>Scan Tickets</a></li>
                             <li className="inner_nav_item"><a href={`/attendees/${event.id}`}>Attendees</a></li>
                             <li className="inner_nav_item"><a href={`/ManageOrder/${event.id}`}>Manage Orders</a></li>
                             <li className="inner_nav_item"><a href={`/eventdetails/${event.id}`}>Event Details</a></li>
                             <li className="inner_nav_item"><a href={`/ticketprices/${event.id}`}>Ticket Prices</a></li>
-                            <li className="inner_nav_item"><a href={`/settingChart/${event.id}`}>Seating Chart</a></li>
-                        </ul>
+                            {event.is_seating_reserved === true && (
+                                <li className="inner_nav_item"><a href={`/settingChart/${event.id}`}>Seating Chart</a></li>
+                            )}                  
+                            </ul>
                     )}
                 </li>
             ))}

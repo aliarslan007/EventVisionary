@@ -6808,6 +6808,18 @@ height: 27px;
     fill: #cbb26a !important;
 }
 
+.yellow_m_bg {
+    color: transparent !important;;
+    font-weight: 600 !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    background: linear-gradient(90deg, rgba(190,158,68,1) 0%, rgba(216,198,144,1) 100%) ;
+    display: inline-block;
+    fill: #cbb26a !important;
+    background-color: transparent;
+    border: none;
+}
+
 .hidden {
     display: none;
   }

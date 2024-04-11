@@ -72,6 +72,12 @@ import { useParams } from 'react-router-dom';
     const [creditCardExpiry, setCreditCardExpiry] = useState('');
     const [creditCardCVV, setCreditCardCVV] = useState('');
 
+    const stripHtmlTags = (html) => {
+        const tempElement = document.createElement('div');
+        tempElement.innerHTML = html;
+        return tempElement.innerText; // or tempElement.textContent
+      };
+      
     const handleFirstNameChange = (event) => {
         setFirstName(event.target.value);
       };
@@ -122,15 +128,29 @@ import { useParams } from 'react-router-dom';
     };
 
     const openPopup14 = () =>{
+        const isEventOver = new Date(event.event_sale_end_date) < new Date();
+        const isEventNotStarted = new Date(event.event_sale_start_date) > new Date();
+
+        if (isEventOver){
+            alert("Event ticket sales has been closed.  ");
+            return
+        }
+        if (isEventNotStarted){
+            alert("Event ticket sales has not been started yet.  ");
+            return
+        }
         console.log("in popup opening funcitons ");
         getHoldToken();
         setPopup14Class('show_popup');
     } 
+
+
     const closePopup14 = () =>{
         console.log("in popup opening funcitons ")
         setPopup14Class('hide_popup');
     };
     let timerInterval;
+    
     const openPopup15 = () =>{
         if (selectedSeats <1){
             alert("you have not selected any seat. ")
@@ -240,23 +260,20 @@ import { useParams } from 'react-router-dom';
 
     
 
-    const handleAddMainLevel = useCallback((object) => {
+    const handleAddMainLevel = useCallback((label, seat, table, price, full_label ) => {
 
-        console.log(" mainlevels is ", mainLevels);
-        console.log(" object is ", object);
 
-    const label_val = object.label;
 
     setMainLevels(prevMainLevels => {
-        const newMainLevel = { label: label_val }; // Correctly construct the new object
+        const newMainLevel = { label, seat, table, price, full_label  }; // Correctly construct the new object
         console.log("Updated mainLevels:", [...prevMainLevels, newMainLevel]);
         return [...prevMainLevels, newMainLevel];
     });
-        // setSelectedSeats(prevSelectedSeats => {
-        //     const newSelectedSeats = { label, seat, table, price, full_label };
-        //     console.log("Updated newSelectedSeats:", [...prevSelectedSeats, newSelectedSeats]);
-        //     return [...prevSelectedSeats, newSelectedSeats];
-        // });
+        setSelectedSeats(prevSelectedSeats => {
+            const newSelectedSeats = { label, seat, table, price, full_label };
+            console.log("Updated newSelectedSeats:", [...prevSelectedSeats, newSelectedSeats]);
+            return [...prevSelectedSeats, newSelectedSeats];
+        });
     }, [mainLevels]);
 
     useEffect(() => {
@@ -739,7 +756,7 @@ import { useParams } from 'react-router-dom';
                                 </div>
                                 <div className="Description_event">
                                     <h3>Description</h3>
-                                    <p>{event.Event_description}</p>
+                                    <p>{stripHtmlTags(event.Event_description)}</p>
                                 </div>
                             </div>
 
@@ -801,15 +818,67 @@ import { useParams } from 'react-router-dom';
                                             <img alt='' src={Render_mobile_only} className="res_triangle pc_none" /> */}
                                             <SeatsioSeatingChart 
                                                 workspaceKey="d7e614a0-9aab-4e68-b91a-299311ea1a62"
-                                                onObjectDeselected={(deselectedObject) => handleRemoveMainLevelByLabel(deselectedObject.label)}                                                onObjectSelected={handleAddMainLevel}
                                                 event={event.event_id}
                                                 pricing={pricing}
                                                 unavailableCategories={boxOfficeCategories}
                                                 showFullScreenButton= {true}
                                                 showSectionPricingOverlay = {true}
                                                 session='manual'
-                                                holdToken={holdToken}
-                                                region="eu"
+                                                holdToken={holdToken} 
+                                                onObjectSelected=  {  function (object)
+                                                        {
+                                                        console.log("object is ",object );
+                                                        console.log("inside deselect ", mainLevels);
+                                                        let ticketTypes=""
+                                                        if(object.pricing.ticketTypes !==undefined){
+                                                            ticketTypes = object.pricing.ticketTypes;
+                                                        }
+                                                        console.log("object is ",object );
+                                                        let seat_sub_category = ''
+                                                        let seat_category = ''
+                                                        let seat_label=''
+                                                        let seat_type=''
+                                                        let price=0
+                                                        seat_type = object.objectType;
+                                                        console.log("seat type is ", seat_type);
+                                                        
+                                                        seat_label=object.label;
+                                                        const [table, seatNumber] = seat_label ? seat_label.split('-') : ["", ""];
+                                                        seat_category=object.category.label;
+    
+                                                            if (seat_type.includes("Seat"))
+                                                            {
+                                                                if (ticketTypes) {
+                                                                    seat_sub_category=object.selectedTicketType;
+    
+                                                                    for (const ticketVar of ticketTypes) {
+                                                                        if (seat_sub_category.includes(ticketVar.ticketType)) {
+                                                                            price= ticketVar.price
+                                                                        }
+                                                                    }
+                                                                }
+                                                                else {
+                                                                    price = object.pricing.price;
+                                                                }
+                                                            }
+                                                            else{
+                                                                price = object.pricing.price;
+                                                            }
+                                                        const label = seat_sub_category ? seat_sub_category : seat_category;
+    
+                                                        handleAddMainLevel(label, seatNumber, table, price, seat_label);
+    
+                                                        }
+                                                    }
+    
+                                                    onObjectDeselected={  function (object)
+                                                        {
+                                                            // alert("it is in deselect")
+                                                            console.log("inside deselect ", mainLevels);
+                                                            handleRemoveMainLevelByLabel(object.label) ;
+                                                        }
+                                                    } 
+                                                    region="eu"
                                                 />
                                                
                                             </div>

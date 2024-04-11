@@ -25,6 +25,20 @@ const AgeValue = {
 const EventRegister = ({ title = '', label = '', event_id='', href = '', showBackButton }) => {
 
     const navigate = useNavigate();
+
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+        navigate(`/Login`);
+        // throw new Error('Authentication token not found');
+    }
+    const authUserId = localStorage.getItem('authUserId');
+    console.log("token is ", authToken);
+    console.log("authUserId is ", authUserId);
+
+    if (!authUserId) {
+        console.error('Authentication authUserId not found');
+    }
+
     const editor = useRef(null);
 	const [content, setContent] = useState('');
 
@@ -59,6 +73,7 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
     const [venueNamesMap, setVenueNamesMap] = useState({}); 
     const [eventTypesMap, setEventTypesMap] = useState({}); 
     const [eventCategoriesMap, setEventCategoriesMap] = useState({}); 
+    const [isChartLink, setIsChartLink] = useState(false);
 
     // add new venue states
     const [venueName, setVenueName] = useState('');
@@ -93,6 +108,7 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
     };
 
     const handleVenueCountryChange = (e) => {
+
         setVenueCountry(e.target.value);
     };
 
@@ -107,10 +123,25 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
         console.log(selectedAge);
         setSelectedAge(value);
     };
+    
     const [isChecked, setIsChecked] = useState(false);
     const toggleOptions = () => {
-        setIsChecked(!isChecked);
-        setIsEventFree(isChecked);
+        if(isChartLink){
+        
+            if(!isChecked ){
+                if(isEventFree){
+                    setIsEventFree(false);
+                }
+            }
+            setIsChecked(!isChecked);
+        }
+        else{
+        if(isEventFree){
+            setIsEventFree(false);
+        }
+        }
+
+        setIsReservedEvent(!isReservedEvent);
     };
     const [selectedRadio, setSelectedRadio] = useState("dewey");
     const handleRadioChange = (e) => {
@@ -205,9 +236,17 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
     };
 
     const handleIsEventFreeChange = (e) => {
-        toggleOptions();
+        if (!isEventFree){
+            if(isReservedEvent){
+                toggleOptions();
+            }
+        }
         setIsEventFree(e.target.checked);
     };
+    useEffect(() => {
+        
+        console.log(" venueCountry ", venueCountry);
+    }, [venueCountry]);
 
     const handleIsReservedEventChange = (e) => {
         setIsReservedEvent(e.target.checked);
@@ -224,8 +263,7 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
     const handleCloneChartChange = (e) => {
         setCloneChart(e.target.value);
     };
-
-
+   
     useEffect(() => {
         // Set the initial value of eventStartDate to today's date
         const today = new Date();
@@ -263,20 +301,30 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
                 }
 
                 }
-
+                const requestBody = JSON.stringify({
+                    user_id : authUserId
+                  });
                 // fetcb venue data
-                const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/`, {
+                const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venuesofuser/`, {
+                    method:'POST',
                     headers: {
-                        Authorization: `Token ${authToken}`
-                    }
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`
+                    },
+                    body:requestBody
                 });
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch venue data');
                 }
+                else{
+
+                }
 
                 
-                const venueData = await response.json();
+                const venueDataResponse = await response.json();
+                const venueData = await venueDataResponse.venues;
+
 
                 if (venueData.length >0) {
                     // Extract the first venue
@@ -291,7 +339,9 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
                                 console.log("venueName : .id:", venueData[venueName].id);
                                 console.log("venueName : .name:", venueData[venueName].venue_name);
                                 setEventVenue(venueData[venueName].venue_name);
-                                
+                                if(!(venueData[venueName].chat_id).includes("NONE")){
+                                    setIsChartLink(true);
+                                }
                             }
                         }
                     }
@@ -305,10 +355,15 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
                             setEventVenue(firstVenue.venue_name);
                         }
                 }
+                else{
+                    setIsChartLink(true);
+                    
+                }
 
                 const venueMap = {};
                 venueData.forEach(eventVenue => {
                     venueMap[eventVenue.venue_name] = eventVenue.id;
+                    
                 });
                 // Update venueNames state with the fetched venue name
                 setVenueNamesMap(venueMap);
@@ -669,6 +724,7 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
        
         const body = {
             // Gather information from variables and construct the body
+            user:authUserId,
             Event_Name: eventTitle,
             event_type: type,
             event_category: cat,
@@ -707,7 +763,8 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
         if (!authToken) {
             throw new Error('Authentication token not found');
         }
-        let url=`${process.env.REACT_APP_BASE_URL}/api/events/` , methodVar= 'POST';
+        let url=`${process.env.REACT_APP_BASE_URL}/api/events/`,
+         methodVar= 'POST';
         if(event_id){
             url = `${process.env.REACT_APP_BASE_URL}/api/events/${event_id}/`;
             methodVar = 'PATCH';
@@ -766,15 +823,7 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
         }
 
         // Construct the request body
-        
-
         try {
-
-            const authToken = localStorage.getItem('authToken');
-            if (!authToken) {
-                throw new Error('Authentication token not found');
-            }
-
             const requestBody = JSON.stringify({
                 venue_name: venueName,
                 venue_nickName: venueNickName,
@@ -782,13 +831,15 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
                 venue_city: venueCity,
                 venue_postal_code: parsedPostalCode,
                 venue_country: venueCountry,
-                venue_state: venueState
+                venue_state: venueState,
+                user: authUserId
             });
-            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/}`, {
+            console.log("body is ", requestBody);
+            console.log(" url is ", (`${process.env.REACT_APP_BASE_URL}/api/venues`))
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${authToken}`
+                    'Content-Type': 'application/json'
                 },
                 body:requestBody
             });
@@ -796,7 +847,7 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
                 console.error(`Error: ${response.status}`);
                 const responseBody = await response.text();
                 
-                // event.target.submit();
+                
                 console.log('authToken', authToken);
                 console.log('Form submitted with data:', requestBody);
                 alert("Failed to save data, Response body: ", responseBody);
@@ -806,7 +857,7 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
             }
             // Handle successful response
             alert("New Venue Form Submitted Successfully  ");
-            
+            // window.location.reload();         
             
     
         } catch (error) {
@@ -939,9 +990,9 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
 
                                                 <label htmlFor=""> Country</label>
                                                 <select name="venueCountry" id="venueCountry" value={venueCountry} onChange={handleVenueCountryChange }>
-                                                    <option value="" selected>united states</option>
-                                                    <option value="">united Kingdom</option>
-                                                    <option value="">Saudi Arabia</option>
+                                                    <option value="united states" selected>united states</option>
+                                                    <option value="united Kingdom">united Kingdom</option>
+                                                    <option value="Saudi Arabia">Saudi Arabia</option>
                                                 </select>
                                             </div>
 
@@ -966,7 +1017,7 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
                                 // config={config}
                                 // tabIndex={1} // tabIndex of textarea
                                 // onBlur={newContent => setContent(newContent)} // preferred to use only this option to update the content for performance reasons
-                                onChange={newContent => setContent(newContent)}
+                                onChange={newContent => setEventDescription(newContent)}
                             />
                     </div>
                     {/* <textarea name="eventDesc" id="eventDesc" className="desc_event" value={eventDescription} onChange={handleEventDescriptionChange}></textarea> */}
@@ -1060,9 +1111,9 @@ const EventRegister = ({ title = '', label = '', event_id='', href = '', showBac
                                 <input
                                     type="checkbox"
                                     className="Present 2"
-                                    name="attedence[]"
-                                    id="watch-main"
-                                    checked={isChecked}
+                                    name="attedence"
+                                    id="watch-ma"
+                                    checked={isReservedEvent}
                                     onChange={toggleOptions}
                                 />
                                 <span className="slider round"></span>

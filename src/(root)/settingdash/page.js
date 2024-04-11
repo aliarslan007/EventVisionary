@@ -16,6 +16,7 @@ import "./index.css"
 
 const Settingdash = () => {
     
+    const [user, setUser] = useState([]);
     const [email, setEmail] = useState([]);
     const [isDisplayEmail, setisDisplayEmail] = useState([]); 
     const [phone, setPhone] = useState([]);
@@ -238,32 +239,55 @@ const Settingdash = () => {
       };
 
     //   handle submit button response for billingInfo data
-    const handleSubmit = async () => {
-        // Perform validations
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        // Perform validations4
+        console.log('All fields ');
         if (
-          firstName.trim() === '' ||
-          lastName.trim() === '' ||
-          billingAddress.trim() === '' ||
-          city.trim() === '' ||
-          state.trim() === '' ||
-          postalCode.trim() === '' ||
-          creditCard.trim() === '' ||
-          securityCode.trim() === '' ||
-          expDate.trim() === ''
+          firstName=== '' ||
+          lastName=== '' ||
+          billingAddress=== '' ||
+          city=== '' ||
+          state === '' ||
+          postalCode=== '' ||
+          creditCard=== '' ||
+          securityCode=== '' ||
+          expDate=== ''
         ) {
           alert('All fields are required');
           return;
         }
     
+        const requestBody = JSON.stringify({
+            // billingInfo: {
+              first_name: firstName,
+              last_name: lastName,
+              billing_address_line1: billingAddress,
+              billing_state: state,
+              billing_city: city,
+              billing_zip_code: postalCode,
+              card_number: creditCard,
+              card_expiry: expDate,
+              card_cvc: securityCode,
+              user: user.id
+            // }
+          });
+          
+        console.log("requestBody is ", requestBody);
+        console.log("credit length is ", creditCard.length);
+        console.log("credit  is ", creditCard);
         // Validate credit card length
-        if (creditCard.length !== 16) {
-          alert('Credit card number must be 16 digits');
+        if (isNaN(creditCard) || creditCard.toString().length !== 16) {
+
+          alert('Credit card number must be 16 digits', creditCard.length);
           return;
         }
     
         // Validate security code length
-        if (securityCode.length !== 3) {
-          alert('Security code (CVV) must be 3 digits');
+        if (isNaN(securityCode) || securityCode.toString().length !== 3) {
+          alert('Security code (CVV) must be 3 digits', securityCode.length);
+          console.log("securityCode length is ", securityCode.length);
+          console.log("securityCode  is ", securityCode);
           return;
         }
     
@@ -276,27 +300,18 @@ const Settingdash = () => {
         }
     
         // Create the request body
-        const requestBody =JSON.stringify({
-          firstName,
-          lastName,
-          billingAddress,
-          city,
-          state,
-          postalCode,
-          creditCard,
-          securityCode,
-          expDate,
-        });
+        
+          
     
         // Make your API call with the requestBody
         try {
             
             // Fetch user data
-            let url=`${process.env.REACT_APP_BASE_URL}/api/getstripeonborad/`, 
+            let url=`${process.env.REACT_APP_BASE_URL}/api/billinginfo/`, 
             methodVar= 'POST';
 
             if(billingInfo_id){
-                url = `${process.env.REACT_APP_BASE_URL}/api/getstripeonborad/${billingInfo_id}/`;
+                url = `${process.env.REACT_APP_BASE_URL}/api/billinginfo/${billingInfo_id}/`;
                 methodVar = 'PATCH';
             }
             const billingInfoResponse = await fetch(url, {
@@ -309,9 +324,11 @@ const Settingdash = () => {
             });
             if (!billingInfoResponse.ok) {
                 alert('Failed to update user data');
+                console.log("bad response is ", billingInfoResponse);
             }
             else{
                 alert('Data submitted successfully');
+                window.location.reload();
             }
         } catch (error) {
           console.error('Error:', error.message);
@@ -346,6 +363,7 @@ const Settingdash = () => {
                 throw new Error('Failed to fetch event data');
             }
             const userData = await userResponse.json();
+            setUser(userData);
             setEmail(userData.email);
             setisDisplayEmail(userData.is_email_display);
             setPhone(userData.phone);
@@ -374,14 +392,34 @@ const Settingdash = () => {
                 body:requestBody
             });
             if (!billinginfoResponse.ok) {
-                throw new Error('Failed to fetch event data');
+                if(billinginfoResponse.status === 404){
+                    console.error("No Bookings Found ");
+                }
+                else{
+                    console.log("billinginfoResponse is ", billinginfoResponse.status);
+                    console.error('Failed to fetch event data');
+                }
             }
             else{
-                const billinginfoResponseData = billinginfoResponse.json()
-                const billingInfo_Data = billinginfoResponseData.billingInfo
+                const billinginfoResponseData =await  billinginfoResponse.json();
+                
+                console.log("billinginfoResponseData is ", billinginfoResponseData);
                 console.log("billing info is ", billinginfoResponseData.billingInfo);
+                const billingInfo_Data = billinginfoResponseData.billingInfo;
 
-
+                setBillingInfo_id(billingInfo_Data.id);
+                setFirstName(billingInfo_Data.first_name || '');
+                setLastName(billingInfo_Data.last_name || '');
+                setBillingAddress(`${billingInfo_Data.billing_address_line1 || ''} ${billingInfo_Data.billing_address_line2 || ''}`.trim());
+                setCity(billingInfo_Data.billing_city || '');
+                setState(billingInfo_Data.billing_state || '');
+                setPostalCode(billingInfo_Data.billing_zip_code || '');
+                setCreditCard(billingInfo_Data.card_number || '');
+                setSecurityCode(billingInfo_Data.card_cvc || '');
+                setExpDate(billingInfo_Data.card_expiry || '');
+                // Assuming card_expiry is in MM/YYYY format, you can split it and format it as needed
+                // const [expMonth, expYear] = (billingInfo_Data.card_expiry || '').split('/');
+                // setExpDate(`${expMonth || ''}/${expYear || ''}`);
             }
 
         }
@@ -517,60 +555,61 @@ const Settingdash = () => {
                                         <p className='yellow_cr'>Payout Method</p>
                                         <p>Billing Information</p>
                                         <p>You will only be charged in the event you elect to absorb service fees or use our SMS campaigns service.</p>
-                                        <form action="" className='setting_method'>
+                                        <form onSubmit={handleSubmit} className='setting_method'>
                                             <div className="setting_method_row">
                                             <div className="method_inputs">
 
                                                 <div className="method_input">
                                                     <label htmlFor="">First Name</label>
-                                                    <input type="text" />
+                                                    <input type="text"
+                                                    value={firstName} onChange={handleFirstNameChange} />
                                                 </div>
                                                 <div className="method_input">
                                                     <label htmlFor="">Last Name</label>
-                                                    <input type="text" />
+                                                    <input type="text" value={lastName} onChange={handleLastNameChange} />
                                                 </div>
                                             </div>
                                             <div className="method_inputs">
 
                                                 <div className="method_input">
                                                     <label htmlFor="">Billing Address</label>
-                                                    <input type="text" />
+                                                    <input type="text" value={billingAddress} onChange={handleBillingAddressChange}/>
                                                 </div>
                                                 <div className="method_input">
                                                     <label htmlFor="">City</label>
-                                                    <input type="text" />
+                                                    <input type="text"  value={city} onChange={handleCityChange}/>
                                                 </div>
                                                 <div className="method_input">
                                                     <label htmlFor="">State</label>
-                                                    <input type="text" />
+                                                    <input type="text"  value={state} onChange={handleStateChange}/>
                                                 </div>
                                                 <div className="method_input">
                                                     <label htmlFor="">Postal Code</label>
-                                                    <input type="number" />
+                                                    <input type="number" value={postalCode} onChange={handlePostalCodeChange} />
                                                 </div>
                                             </div>
                                             <div className="method_inputs">
 
                                                 <div className="method_input">
                                                     <label htmlFor="">Credit/Debit Card</label>
-                                                    <input type="number" />
+                                                    <input type="number" value={creditCard} onChange={handleCreditCardChange}/>
                                                 </div>
                                             </div>
                                             <div className="method_inputs">
 
                                                 <div className="method_input">
                                                     <label htmlFor="">Security Code</label>
-                                                    <input type="number" />
+                                                    <input type="number" value={securityCode} onChange={handleSecurityCodeChange} />
                                                 </div>
                                                 <div className="method_input">
                                                     <label htmlFor="">Exp Date</label>
-                                                    <input type="number" />
+                                                    <input type="date" value={expDate} onChange={handleExpDateChange}/>
                                                 </div>
                                             </div>
                                             </div>
                                             <div className='save_btn_method'>
 
-                                            <button type='submit'>Save</button>
+                                            <button type='submit' >Save</button>
                                             </div>
                                         </form>
 

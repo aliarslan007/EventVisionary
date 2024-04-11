@@ -2,7 +2,7 @@
 import GoogleChart from '../../components/GoogleChart/GoogleChart'
 import SubMenus, { Silder_icon } from '../../components/SubMenus/SubMenus'
 import { Dashboard_img } from '../../public'
-import React, {useEffect, useState} from 'react'
+import React, {useEffect,useRef, useState} from 'react'
 import { CiCirclePlus } from 'react-icons/ci'
 import { FaRegUser } from 'react-icons/fa'
 import { FaGear, FaRegMessage } from 'react-icons/fa6'
@@ -12,10 +12,23 @@ import { SlLocationPin } from 'react-icons/sl'
 import './index.css'
 import RootLayout from '../layout';
 
+// import Chart from 'chart.js/auto';
+
 const Dashboard = () => {
+    
+    const [events, setEvents] = useState([]);
     const [revenue, setRevenue] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const chartRef = useRef(null);
+
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        // Format the date as desired
+        const formattedDate = date.toLocaleDateString(); // Format: MM/DD/YYYY
+        return formattedDate;
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -44,8 +57,32 @@ const Dashboard = () => {
                 if (!revenueResponse.ok) {
                     throw new Error('Failed to fetch event data');
                 }
+                else{
                 const revenueData = await revenueResponse.json();
                 setRevenue(revenueData.total_revenue);
+
+                }
+
+
+                // fetch all events
+                const requestBody = JSON.stringify({
+                    user_id: authUserId
+                });
+                // Fetch event data
+                const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventsofuser/`, {
+                    method: 'POST',  // Assuming you are making a POST request
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${authToken}`
+                    },
+                    body: requestBody
+                 });
+                if (!eventResponse.ok) {
+                    throw new Error('Failed to fetch event data');
+                }
+                const eventResponseData = await eventResponse.json();
+                console.log("event response is ", eventResponseData.events)
+                setEvents(eventResponseData.events);
 
             } catch (error) {
                 setError(error);
@@ -137,21 +174,14 @@ const Dashboard = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>1.</td>
-                                                <td>Drake | Sublime | Bob Marley</td>
-                                                <td>10/31/2025</td>
+                                        {events && Array.isArray(events) && events.map((event, index) => (
+
+                                            <tr key={index}>
+                                                <td>{index+1}</td>
+                                                <td>{event.Event_Name}</td>
+                                                <td>{formatDate(event.created)}</td>
                                             </tr>
-                                            <tr>
-                                                <td>2.</td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>3.</td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
+                                        ))}
                                         </tbody>
                                     </table>
                                 </div>

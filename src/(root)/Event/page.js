@@ -127,50 +127,7 @@ const Event = () => {
                                 </div>
                             </li>
                             <li>
-                                <div className="iocn-link">
-                                    <div className="inner_nav_links " id="">
-                                        <div className="flex_option_row accordion">
-
-                                            <FaRegCalendarAlt className="menu_dash_i yellow_m" />
-                                            <div className="Event_Title  ">
-                                                <div className=" inner_flex">
-                                                    <a href="/Event" className='yellow_m'>
-
-                                                        EVENTS
-                                                    </a>
-                                                </div>
-                                                <FaChevronDown className="icon_sub_menu " onClick={toggleMain} />
-
-                                            </div>
-                                        </div>
-                                        {isMainOpen && (
-                                            <ul className="upper_nav_i panel inner_nav_items2">
-                                                <a href="/archived" className="inner_link_i">Archived</a>
-                                                <a href="/Draft" className='inner_link_i'>Draft</a>
-                                                <a href="/eventdash" className='inner_link_i'>
-                                                    <li className=" inner_flex Exinner_flex">
-                                                        Event Title
-                                                        <FaChevronDown className="low_event" onClick={toggleEvent} />
-                                                    </li>
-
-                                                </a>
-                                                {isEventOpen && (
-
-                                                    <ul className="inner_nav_items panel2">
-                                                        <li className="inner_nav_item"><a href="/sellTickets" className="">Sell Tickets</a></li>
-                                                        <li className="inner_nav_item"><a href="/managetwo">Hold Seats</a></li>
-                                                        <li className="inner_nav_item"><a href="/scanTickets">Scan Tickets</a></li>
-                                                        <li className="inner_nav_item"><a href="/attendees">Attendees</a></li>
-                                                        <li className="inner_nav_item"><a href="/ManageOrder">Manage Orders</a></li>
-                                                        <li className="inner_nav_item"><a href="/eventdetails" >Event Details</a></li>
-                                                        <li className="inner_nav_item"><a href="/ticketprices">Ticket Prices</a></li>
-                                                        <li className="inner_nav_item"><a href="/settingChart">Seating Chart</a></li>
-                                                    </ul>
-                                                )}
-                                            </ul>
-                                        )}
-                                    </div>
-                                </div>
+                                <SubMenus/>
                             </li>
                             <li>
                                 <a href="/venues">

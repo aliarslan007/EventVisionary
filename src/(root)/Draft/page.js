@@ -2,7 +2,7 @@
 import ArchivedCom from '../../components/ArchivedCom/ArchivedCom';
 import DraftCom from '../../components/DraftCom/DraftCom';
 import MainMenusEx from '../../components/MainMenusEx/MainMenusEx';
-import { Silder_icon } from '../../components/SubMenus/SubMenus';
+import SubMenus, { Silder_icon } from '../../components/SubMenus/SubMenus';
 import React, { useState, useEffect } from 'react'
 import { CiCirclePlus } from 'react-icons/ci';
 import { FaRegCalendarAlt, FaChevronDown } from 'react-icons/fa';
@@ -10,12 +10,24 @@ import { IoSpeedometerOutline } from 'react-icons/io5';
 import RootLayout from '../layout';
 
 const Draft = () => {
+    const [searchquery, setSearchquery] = useState('');
+    const [searchInput, setSearchInput] = useState(''); 
+
     const [events, setEvents] = useState([]);
+    const [filteredEvents, setFilteredEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     const [isMainOpen, setIsMainOpen] = useState(true);
     const [isEventOpen, setIsEventOpen] = useState(true);
+
+    // Function to handle input change
+    const handleInputChange = (e) => {
+        // Update the search input value state
+        setSearchInput(e.target.value);
+        // Call the function to update the search query state in the parent component
+        setSearchquery(e.target.value);
+    };
 
     const toggleMain = () => {
         setIsMainOpen(!isMainOpen);
@@ -24,6 +36,22 @@ const Draft = () => {
     const toggleEvent = () => {
         setIsEventOpen(!isEventOpen);
     };
+    useEffect(() => {
+            // Function to filter venues based on search query
+            const filterEvents = (query) => {
+                const filteredEvents = events.filter((event) => {
+                    // Perform case-insensitive search on venue name
+                    const lowerCaseQuery = query.toLowerCase();
+
+                    return (
+                        event.Event_Name.toLowerCase().includes(lowerCaseQuery)
+                    ); });
+                // Update the filteredVenuesList state with the filtered venues
+                setFilteredEvents(filteredEvents);
+            };
+        
+            filterEvents(searchquery);
+        }, [searchquery, events]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -92,51 +120,7 @@ const Draft = () => {
                                 </div>
                             </li>
                             <li>
-                                <div className="iocn-link">
-                                    <div className="inner_nav_links " id="">
-                                        <div className="flex_option_row accordion">
-
-                                            <FaRegCalendarAlt className="menu_dash_i yellow_m" />
-                                            <div className="Event_Title  ">
-                                                <div className=" inner_flex">
-                                                    <a href="/Event" className='yellow_m'>
-
-                                                        EVENTS
-                                                    </a>
-                                                </div>
-                                                {/* <i className='bx bxs-chevron-down' id="myElement" onClick={toggleAccordion}></i> */}
-                                                <FaChevronDown className="icon_sub_menu" onClick={toggleMain} />
-
-                                            </div>
-                                        </div>
-                                        {isMainOpen && (
-                                            <ul className="upper_nav_i panel inner_nav_items2">
-                                                <a href="/archived" className="inner_link_i ">Archived</a>
-                                                <a href="/Draft" className='inner_link_i yellow_m'>Draft</a>
-                                                <a href="/eventdash" className='inner_link_i'>
-                                                    <li className=" inner_flex Exinner_flex ">
-                                                        Event Title
-                                                        <FaChevronDown className="low_event" onClick={toggleEvent} />
-                                                    </li>
-
-                                                </a>
-                                                {isEventOpen && (
-
-                                                    <ul className="inner_nav_items panel2">
-                                                        <li className="inner_nav_item"><a href="/sellTickets" className="">Sell Tickets</a></li>
-                                                        <li className="inner_nav_item"><a href="/managetwo">Hold Seats</a></li>
-                                                        <li className="inner_nav_item"><a href="/scanTickets">Scan Tickets</a></li>
-                                                        <li className="inner_nav_item"><a href="/attendees">Attendees</a></li>
-                                                        <li className="inner_nav_item"><a href="/ManageOrder">Manage Orders</a></li>
-                                                        <li className="inner_nav_item"><a href="/eventdetails" >Event Details</a></li>
-                                                        <li className="inner_nav_item"><a href="/ticketprices">Ticket Prices</a></li>
-                                                        <li className="inner_nav_item"><a href="/settingChart">Seating Chart</a></li>
-                                                    </ul>
-                                                )}
-                                            </ul>
-                                        )}
-                                    </div>
-                                </div>
+                                <SubMenus/>
                             </li>
                             <MainMenusEx />
 
@@ -148,12 +132,13 @@ const Draft = () => {
                             <div className="manage_order_area">
 
                                 <div className="manage_order_section">
-                                    <h1>Draft(3)</h1>
+                                    <h1>Draft({events.length})</h1>
                                     <form action="" className="manage_order_form">
 
                                         <div className="manage_filter_row">
                                             <div className="manage_filter_in">
-                                                <input type="search" placeholder="Search by name" />
+                                                <input type="search" value={searchInput}
+                                                onChange={handleInputChange} placeholder="Search by name" />
                                                 <i className='bx bx-search'></i>
                                             </div>
                                         </div>
@@ -169,7 +154,7 @@ const Draft = () => {
                                         <p className="none">.</p>
                                     </div>
                                     <div className="ct_body">
-                                    {events && Array.isArray(events) && events.map(event => (
+                                    {filteredEvents && Array.isArray(filteredEvents) && filteredEvents.map(event => (
                                         <DraftCom  eventTitle={event.Event_Name} eventStartTime={event.start_time} eventEndTime={event.end_time} eventCreated={event.created} eventId={event.id} />
                                     ))}
                                     </div>

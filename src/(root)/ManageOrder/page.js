@@ -1,6 +1,6 @@
 'use client'
 import MainMenusEx from '../../components/MainMenusEx/MainMenusEx'
-import { Silder_icon } from '../../components/SubMenus/SubMenus';
+import SubMenus, { Silder_icon } from '../../components/SubMenus/SubMenus';
 import React, { useState } from 'react'
 import { CiCirclePlus } from 'react-icons/ci';
 import { FaRegCalendarAlt, FaChevronDown, FaSearch } from 'react-icons/fa';
@@ -8,9 +8,12 @@ import { FaChevronLeft } from 'react-icons/fa6';
 import { IoSpeedometerOutline } from 'react-icons/io5';
 import ManageOrdersCom from '../../components/ManageOrdersCom/ManageOrdersCom';
 import RootLayout from '../layout';
+import { useParams } from 'react-router-dom';
 
 
 const ManageOrder = () => {
+    const { eventId } = useParams(); 
+
     const [isMainOpen, setIsMainOpen] = useState(true);
     const [isEventOpen, setIsEventOpen] = useState(true);
 
@@ -47,54 +50,7 @@ const ManageOrder = () => {
                                 </div>
                             </li>
                             <li>
-                                <div className="iocn-link">
-                                    <div className="inner_nav_links " id="">
-                                        <div className="flex_option_row accordion">
-
-                                            <FaRegCalendarAlt className="menu_dash_i yellow_m" />
-                                            <div className="Event_Title  ">
-                                                <div className=" inner_flex">
-                                                    <a href="/Event" className='yellow_m'>
-
-                                                        EVENTS
-                                                    </a>
-                                                </div>
-                                                {/* <i className='bx bxs-chevron-down' id="myElement" onClick={toggleAccordion}></i> */}
-                                                <FaChevronDown className="icon_sub_menu" onClick={toggleMain} />
-
-                                            </div>
-                                        </div>
-                                        {isMainOpen && (
-                                            <ul className="upper_nav_i panel inner_nav_items2">
-                                                <a href="/archived" className="inner_link_i ">Archived</a>
-                                                <a href="/Draft" className='inner_link_i'>Draft</a>
-                                                <div className='Exinner_flex '>
-
-                                                    <a href="/eventdash" className='inner_link_i'>
-                                                        <li className=" inner_flex Exinner_flex yellow_m">
-                                                            Event Title
-                                                        </li>
-
-                                                    </a>
-                                                    <FaChevronDown className="low_event" onClick={toggleEvent} />
-                                                </div>
-                                                {isEventOpen && (
-
-                                                    <ul className="inner_nav_items panel2">
-                                                        <li className="inner_nav_item "><a href="/sellTickets" >Sell Tickets</a></li>
-                                                        <li className="inner_nav_item"><a href="/managetwo">Hold Seats</a></li>
-                                                        <li className="inner_nav_item"><a href="/scanTickets">Scan Tickets</a></li>
-                                                        <li className="inner_nav_item"><a href="/attendees">Attendees</a></li>
-                                                        <li className="inner_nav_item"><a href="/ManageOrder" className='yellow_m'>Manage Orders</a></li>
-                                                        <li className="inner_nav_item"><a href="/eventdetails" >Event Details</a></li>
-                                                        <li className="inner_nav_item"><a href="/ticketprices">Ticket Prices</a></li>
-                                                        <li className="inner_nav_item"><a href="/settingChart">Seating Chart</a></li>
-                                                    </ul>
-                                                )}
-                                            </ul>
-                                        )}
-                                    </div>
-                                </div>
+                                <SubMenus/>
                             </li>
                             <MainMenusEx />
 
@@ -102,8 +58,7 @@ const ManageOrder = () => {
                     </div>
                     <section className="home-section">
                         <div className="home-content">
-                           <ManageOrdersCom title='Event Title: Manage Orders'/>
-
+                           <ManageOrdersCom title='Event Title: Manage Orders' eventId={eventId}/>
                         </div>
                     </section>
                 </div>

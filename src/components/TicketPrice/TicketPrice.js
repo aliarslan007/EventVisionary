@@ -300,7 +300,7 @@ const TicketPrice = ({ status="", title = '', label = '', href = '', showBackBut
                 mainLevel.subLevels.forEach(subLevel => {
                     const subLevelD = subLevelData[mainLevel.id]?.[subLevel.id];
                     for (const field in subLevelD) {
-                        if ((!isFreeEvent && !subLevelD.hasOwnProperty('price'))|| !subLevelD.hasOwnProperty('quantity') || !subLevelD.hasOwnProperty('name') || !subLevelD.hasOwnProperty('is_box_office')) {
+                        if ((!isFreeEvent && !subLevelD.hasOwnProperty('price'))|| !subLevelD.hasOwnProperty('quantity') || !subLevelD.hasOwnProperty('name')) {
                             // alert("Please fill all fields for main level");
                             isEmpty = true; 
                             return;
@@ -317,7 +317,7 @@ const TicketPrice = ({ status="", title = '', label = '', href = '', showBackBut
             }
             else{
                         // Check if mainLevelData has all required fields
-                if ((!isFreeEvent && !mainLevelD.hasOwnProperty('price')) || !mainLevelD.hasOwnProperty('quantity') || !mainLevelD.hasOwnProperty('name') || !mainLevelD.hasOwnProperty('is_box_office')) {
+                if ((!isFreeEvent && !mainLevelD.hasOwnProperty('price')) || !mainLevelD.hasOwnProperty('quantity') || !mainLevelD.hasOwnProperty('name')) {
                     // alert("Please fill all fields for main level");
                     isEmpty = true; 
                     return;
@@ -855,14 +855,19 @@ const TicketPrice = ({ status="", title = '', label = '', href = '', showBackBut
                     // calling api for creating subcategories
                     // ------------------
                     // <<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>
+                    if(subLevelData[mainLevel.id][subLevel.id].is_box_office){
+
+                    }
                     const requestBody = JSON.stringify({
-                        name : subLevelData[mainLevel.id][subLevel.id].name,
-                        price : parseInt(subLevelData[mainLevel.id][subLevel.id].price),
-                        quantity : subLevelData[mainLevel.id][subLevel.id].quantity,
-                        is_box_office : subLevelData[mainLevel.id][subLevel.id].is_box_office,
-                        event : responseData.id,
-                        VenueChartCategory : categoryId,
-                        venue_name : responseData.Venue_name,
+                        name: subLevelData[mainLevel.id][subLevel.id].name,
+                        price: parseInt(subLevelData[mainLevel.id][subLevel.id].price),
+                        quantity: subLevelData[mainLevel.id][subLevel.id].quantity,
+                        event: responseData.id,
+                        VenueChartCategory: categoryId,
+                        venue_name: responseData.Venue_name,
+                        ...(subLevelData[mainLevel.id][subLevel.id].is_box_office !== undefined && {
+                            is_box_office: subLevelData[mainLevel.id][subLevel.id].is_box_office
+                        })
                     });
                     // fetch event with eventId
                     const subCategoryResponse = await fetch(`${envUrl}/api/subcategories/`, {
@@ -920,12 +925,14 @@ const TicketPrice = ({ status="", title = '', label = '', href = '', showBackBut
                 else{
                     // when no multipricing
                     const requestBody = JSON.stringify({
-                        name : mainLevelData[mainLevel.id].name,
-                        price : parseInt(mainLevelData[mainLevel.id].price),
-                        quantity : mainLevelData[mainLevel.id].quantity,
-                        is_box_office : mainLevelData[mainLevel.id].is_box_office,
-                        event : responseData.id,
-                        venue_name : responseData.Venue_name,
+                        name: mainLevelData[mainLevel.id].name,
+                        price: parseInt(mainLevelData[mainLevel.id].price),
+                        quantity: mainLevelData[mainLevel.id].quantity,
+                        event: responseData.id,
+                        venue_name: responseData.Venue_name,
+                        ...(mainLevelData[mainLevel.id].is_box_office !== undefined && {
+                            is_box_office: mainLevelData[mainLevel.id].is_box_office
+                        })
                     });
                     console.log("body is 3", requestBody);
                     console.log("eventId is ", eventId);
@@ -1354,12 +1361,12 @@ const TicketPrice = ({ status="", title = '', label = '', href = '', showBackBut
                         </div> 
                         <div className="enable_sale_tax_section">
                             <div className="tax_btn"
-                            style={{ display: !isFreeEvent && isEnableTax ? "block" : "none" }}
+                            style={{ display: !isFreeEvent ? "block" : "none" }}
                             >
                                 <label className="switch">
                                     <input type="checkbox" checked={enableSalesTax} id="Sales_tax" value={enableSalesTax} onChange={handleCheckboxChange} />
                                     <span className="slider round" ></span>
-                                </label>
+                                </label><br/>
                                 <p>Enable Sales Tax?</p>
 
                             </div>

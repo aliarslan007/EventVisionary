@@ -9,10 +9,12 @@ import './index.css'
 import "./index.css"
 import SellTicketsCom from '../../components/SellTickets/SellTickets'
 import RootLayout from '../layout';
+import { useParams } from 'react-router-dom';
 
 
 const SellTickets = () => {
 
+    const { token } = useParams(); 
     const [paymentOption, setPaymentOption] = useState('Card'); // 'Card' or 'Cash'
 
    
@@ -61,7 +63,7 @@ const SellTickets = () => {
                     </div>
                     <section className="home-section">
                         <div className="home-content">
-                            <SellTicketsCom title='Event Title'/>
+                            <SellTicketsCom title='Event Title' token={token}/>
                             
 
                         </div>

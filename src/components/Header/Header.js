@@ -60,12 +60,56 @@ const Header = () => {
         }
     };
     const [isDropdownVisible, setDropdownVisible] = useState(false);
+    const [isDropdownListVisible, setDropdownListVisible] = useState(false);
+    const [user, setUser] = useState(''); 
 
     const toggleDropdown = () => {
-        setDropdownVisible(!isDropdownVisible);
+        setDropdownListVisible(!isDropdownListVisible);
     };
 
-    useEffect(() => {
+    useEffect( () => {
+        const fetchData = async () => {
+            try {
+                const authToken = localStorage.getItem('authToken');
+
+                if (!authToken) {
+                  console.error('Authentication token not found');
+                  return
+                }
+                const authUserId = localStorage.getItem('authUserId');
+
+                if (!authUserId) {
+                    console.error('Authentication user id   found');
+                    return
+                }
+            
+                // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
+                
+                // Fetch user data
+                const userResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/users/${authUserId}/`, {
+                    headers: {
+                        Authorization: `Token ${authToken}`
+                    }
+                });
+                if (!userResponse.ok) {
+                    console.error('Failed to fetch event data');
+                    return
+                }
+                else{
+                const userData = await userResponse.json();
+                setUser(userData);
+                setDropdownVisible(true);
+                }
+                
+
+
+            } catch (error) {
+                console.error(error);
+            } 
+        };
+    
+        // Call the fetchData function
+        fetchData();
         // Update selectedLink when the component mounts to reflect the initial URL
         setSelectedLink(window.location.pathname);
     }, []);
@@ -114,12 +158,14 @@ const Header = () => {
                     <li><a href='/NewEvent' className={`li_active ${addYellowCrrClass('/NewEvent')}`}>CREATE EVENT</a></li>
                 </ul>
             </div>
-            <div className='dropdwon_custom_warp' style={{ display: "none" }}>
-                <p className='dropdwon_custom' onMouseEnter={toggleDropdown} onMouseLeave={toggleDropdown}>
+            
+            <div className='dropdwon_custom_warp' style={{ display: isDropdownVisible ? "block" : "none" }} 
+            onMouseEnter={toggleDropdown} onMouseLeave={toggleDropdown}>
+                <p className='dropdwon_custom' >
                     Hover over me
                     <FaChevronDown className="dropdwon_custom_i" />
                 </p>
-                {isDropdownVisible && (
+                {isDropdownListVisible && (
                     <div className="dropdownStyles">
                         <ul>
                             <a href="/Dashboard">Dashboard</a>
@@ -133,7 +179,7 @@ const Header = () => {
                 )}
             </div>
 
-            <a href="/Login" className="login-button  res_none" onClick={closeMenu}>{log_button}</a>
+            <button  className="login-button  res_none" onClick={closeMenu}>{log_button}</button>
         </nav>
     )
 }

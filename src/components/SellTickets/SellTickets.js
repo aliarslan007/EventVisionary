@@ -1,10 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { FaXmark } from 'react-icons/fa6';
 import ArchivedBack from '../ArchivedBack/ArchivedBack';
 import "./index.css";
 import SellTicketwarp from '../SellTicketwarp/SellTicketwarp';
 
-const SellTicketsCom = ({ title = "", showBackButton }) => {
+const SellTicketsCom = ({ title = "", showBackButton , token}) => {
+
+
+    const [pricing, setPricing] = useState([]);
+    const [boxOfficeCategories, setBoxOfficeCategories] = useState([]);
+    let base_api_url=`${process.env.REACT_APP_BASE_URL}`;
+    const prevElement = useRef();
+    const prevLabel = useRef();
+
+
+    const [mainLevels, setMainLevels] = useState([]);
+    const [event, setEvent] = useState([]);
+    const [eventImageUrl, setEventImageUrl] = useState('');
+    const [venue, setVenue] = useState([]);
+    const [org, setOrg] = useState([]);
+    const [eventPriceRange, setEventPriceRange] = useState([]);
+
+
+    const [subTotalCart, setSubTotalCart] = useState(0);
+    const [serviceFeeCart, setServiceFeeCart] = useState(0);
+    const [P, setP] = useState(0);
+    const [G, setG] = useState(0);
+    const [taxesCart, setTaxesCart] = useState(0);
+    const [totalBillCart, setTotalBillCart] = useState(0);
+    const [is_event_free, setIs_event_free] = useState(false);
+    const [is_absorb_fee, setIs_absorb_fee] = useState(false);
+    const [selectedSeats, setSelectedSeats] = useState([]);
+
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [address1, setAddress1] = useState('');
+    const [address2, setAddress2] = useState('');
+    const [email, setEmail] = useState('');
+    const [city, setCity] = useState('');
+    const [state, setState] = useState('');
+    const [postal, setPostal] = useState('');
+    const [creditCardNumber, setCreditCardNumber] = useState('');
+    const [creditCardExpiry, setCreditCardExpiry] = useState('');
+    const [creditCardCVV, setCreditCardCVV] = useState('');
+
+
+    const stripHtmlTags = (html) => {
+        const tempElement = document.createElement('div');
+        tempElement.innerHTML = html;
+        return tempElement.innerText; // or tempElement.textContent
+      };
+
 
     
     const handlePaymentChange = (event) => {
@@ -23,6 +69,332 @@ const SellTicketsCom = ({ title = "", showBackButton }) => {
     const increment = () => {
         setCount(count + 1);
     };
+
+    
+
+    const handleAddMainLevel = useCallback((label, seat, table, price, full_label ) => {
+
+
+
+        setMainLevels(prevMainLevels => {
+            const newMainLevel = { label, seat, table, price, full_label  }; // Correctly construct the new object
+            console.log("Updated mainLevels:", [...prevMainLevels, newMainLevel]);
+            return [...prevMainLevels, newMainLevel];
+        });
+            setSelectedSeats(prevSelectedSeats => {
+                const newSelectedSeats = { label, seat, table, price, full_label };
+                console.log("Updated newSelectedSeats:", [...prevSelectedSeats, newSelectedSeats]);
+                return [...prevSelectedSeats, newSelectedSeats];
+            });
+        }, [mainLevels]);
+    
+        useEffect(() => {
+            console.log("MainLevels after update:", mainLevels);
+        }, [mainLevels]);
+    
+        const handleRemoveMainLevelByLabel  = (full_label) => {
+            console.log("Removing main level  ::", full_label);
+            console.log("mainLevels:", mainLevels);
+        
+            const isLabelFound = mainLevels.some(level => level.full_label === full_label);
+        
+            if (isLabelFound) {
+                console.log("inside if statement ");
+        
+                setMainLevels(prevMainLevels => {
+                    const updatedMainLevels = prevMainLevels.filter(level => level.full_label !== full_label);
+                    console.log("Updated mainLevels:", updatedMainLevels);
+                    return updatedMainLevels;
+                });
+                setSelectedSeats(prevSelectedSeats => {
+                    const updatedSelectedSeats = prevSelectedSeats.filter(level => level.full_label !== full_label);
+                    console.log("Updated updatedSelectedSeats:", updatedSelectedSeats);
+                    return updatedSelectedSeats;
+                });
+        
+                console.log("After updating mainLevels:", mainLevels);
+                console.log("Before calling releaseSeatsObject mainLevels :", mainLevels);
+                // releaseSeatsObject(full_label);
+            } else {
+                console.log("Label not found in mainLevels");
+            }   
+        };
+        
+        const calculateSubtotal = (selectedSeats) => {
+            // Logic to calculate subtotal
+            if(event.is_event_free){
+                // setSubTotalCart(0);
+                return 0;
+            }
+            else{
+            let subtotal = 0;
+            selectedSeats.forEach(seat => {
+              subtotal += seat.price;
+            });
+            
+            // setSubTotalCart(subtotal);
+            return parseFloat(subtotal.toFixed(2));
+    
+           }
+          };
+        
+          // Function to calculate taxes based on subtotal
+          const calculateTaxes = (subtotal) => {
+            // Logic to calculate taxes
+            console.log("check free event status ", (event.is_event_free));
+            if(event.is_event_free){
+                // setTaxesCart(0);
+                return 0;
+            }
+            else{
+                if (event.is_event_tax_enable){
+    
+                    console.log("in free event else side tax enable: ", (event.event_tax));
+                    const taxRate = event.event_tax; // Example tax rate (10%)
+                    // setTaxesCart(taxRate);
+                    return parseFloat(((subtotal * taxRate)/100).toFixed(2));
+                }
+                else{
+                    console.log("in free event else side tax not  enable: ");
+    
+                    return 0;
+                }
+            }
+          };
+        
+          // Function to calculate service fee based on subtotal
+          const calculateServiceFee = (subtotal) => {
+            // Logic to calculate service fee
+            if(event.is_event_free){
+                return 0;
+            }
+            else{
+                console.log("in else service fee subtotal \n", (subtotal));
+                console.log("in else service fee subTotalCart \n", (subTotalCart));
+                console.log("taxesCart \n", (taxesCart));
+                
+                const temp_P = ((subtotal + taxesCart)*0.0429)+(1.0).toFixed(2);
+                const temp_G = ((subtotal + taxesCart)*0.029)+(0.3).toFixed(2);
+                const P = parseFloat(temp_P);
+                const G = parseFloat(temp_G);
+                
+                console.log("P \n", (P));
+                console.log("G \n", (G));
+                setP(P);
+                setG(G);
+                if (event.absorb_fee){
+                    console.log("if is_absorb_fee serviceFeeRate \n", (P+G));
+                    return  0;
+    
+                }
+                else{
+                    console.log(" else is_absorb_feeP \n", P);
+                    console.log("else is_absorb_feeG \n", G);
+                    const serviceFeeRate = parseFloat((P+G).toFixed(2));
+                    // Example service fee rate (5%)
+                    // setTotalBillCart((subTotalCart+P+G));
+                    return serviceFeeRate;
+                }
+            }
+          };
+        
+          useEffect(() => {
+            if(selectedSeats.length>0){
+    
+            
+            // Calculate subtotal based on selected seats
+            const subtotal = calculateSubtotal(selectedSeats);
+            setSubTotalCart(subtotal);
+        
+            // Calculate taxes based on subtotal
+            const calculatedTaxes = calculateTaxes(subtotal);
+            setTaxesCart(calculatedTaxes);
+        
+            // Calculate service fee based on subtotal
+            const calculatedServiceFee = calculateServiceFee(subtotal);
+            setServiceFeeCart(calculatedServiceFee);
+        
+            // Calculate total
+            const calculatedTotal = subtotal + calculatedTaxes + calculatedServiceFee;
+            setTotalBillCart(calculatedTotal);
+           }
+           else{
+            setSubTotalCart(0);
+            setTaxesCart(0);
+            setServiceFeeCart(0);
+            setTotalBillCart(0);
+           }
+    
+          }, [selectedSeats]);
+
+          
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // base_api_url = "${process.env.REACT_APP_BASE_URL}";
+                
+                // const token = 'e0d25a4a3fda989bf969bc5971a9e36878ece9f2';
+                const authToken = localStorage.getItem('authToken');
+
+                if (!authToken) {
+                throw new Error('Authentication token not found');
+                }
+
+                const requestBody = JSON.stringify({
+                    unique_token : token,
+                });
+                // Fetch event data
+                console.log("Before event api call and token :", token);
+                console.log("url is : ", (`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`));
+                console.log("static url is : ", (`${base_api_url}/api/eventofuniquetoken/`));
+
+                // const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`, {
+                    const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventofuniquetoken/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${authToken}`
+                    },
+                    body: requestBody
+                });
+                console.log("after api call");
+                if (!eventResponse.ok) {
+                    console.log("inside error api call: ", eventResponse);
+                    throw new Error('Failed to fetch event data');
+                }
+                const eventData = await eventResponse.json();
+                console.log("eventData api call", eventData);
+
+                const newEvent = eventData.event;
+
+
+                // const baseURL = window.location.origin; // Your base URL
+                const baseURL = `${base_api_url}`
+                let imageURL = newEvent.Event_image;
+                console.log("1 : imageURL: ", imageURL);
+                if (imageURL.startsWith('/images')) {
+                    
+                    console.log("2 ");
+                    
+                    imageURL = `${baseURL}${imageURL}`;
+                    console.log("3 updated imageURL : ", imageURL);
+                    setEventImageUrl(imageURL);
+                }
+                else{
+                    
+                    console.log("in else");
+                    setEventImageUrl(eventData.event.Event_image);
+
+                }
+                console.log("newEvent ", newEvent);
+                setEvent(eventData.event);
+    
+                // Extract venueId from event data
+                const venueId = newEvent.Venue_name;
+    
+                // Fetch venue data using the extracted venueId
+                const venueResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/venues/${venueId}/`, {
+                    headers: {
+                        Authorization: `Token ${authToken}`
+                    }
+                });
+                if (!venueResponse.ok) {
+                    throw new Error('Failed to fetch venue data');
+                }
+                const venueData = await venueResponse.json();
+                setVenue(venueData);
+
+
+                 // Extract venueId from event data
+                //  const orgId = eventData.user;
+    
+                 // Fetch venue data using the extracted venueId
+                const eventPriceResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/eventpricerange/`, {
+                    method: 'POST',  // Assuming you are making a POST request
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${authToken}`
+                    },
+                    body: JSON.stringify({ event_id: (newEvent.id) })
+                 });
+                 if (!eventPriceResponse.ok) {
+                     throw new Error('Failed to fetch venue data');
+                 }
+                 const eventPrice_data = await eventPriceResponse.json();
+                 setEventPriceRange(eventPrice_data);
+
+
+                 // Extract venueId from event data
+                 const orgId = newEvent.user;
+                 console.log("org id is", orgId);
+    
+                 // Fetch venue data using the extracted venueId
+                 const orgResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/users/${orgId}/`, {
+                     headers: {
+                         Authorization: `Token ${authToken}`
+                     }
+                 });
+                 if (!orgResponse.ok) {
+
+                     throw new Error('Failed to fetch venue data');
+                 }
+                 const orgData = await orgResponse.json();
+                 console.log("orgData  is", orgData);
+                 setOrg(orgData);
+
+                //  *************** child component work
+                ///////////////////////////////////////
+
+                
+                // fetching pricing 
+                const requestBody2 = JSON.stringify({
+                    token : (token)
+                });
+                // fetch event with eventId
+                const PricingResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/pricingofevent/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`
+                },
+                body: requestBody2
+                });
+        
+                // Check if the request was successful (status code 2xx)
+                if (PricingResponse.ok) {
+                    const PricingResponseData = await PricingResponse.json(); // Parse the response JSON
+                    console.log('event PricingResponseData successfully:', PricingResponseData); 
+                    setPricing(PricingResponseData.pricing); 
+                    setBoxOfficeCategories(PricingResponseData.boxOfficeCategories); 
+                    // Optionally, you can return the response data or perform other actions here
+                } else {
+                    console.error(`Error: ${PricingResponse.status}`);
+                    const pricingResponseBody = await PricingResponse.text();
+                    // event.target.submit();
+                    console.log('authToken', authToken);
+                    console.log('Form submitted with data:', requestBody2);
+                    console.error(`Response body: ${pricingResponseBody}`);
+                    return;
+                }
+                // pricing api call ends here
+
+                /////////////////
+                // //////////////////
+                //////////////////
+
+
+            } catch (error) {
+                console.error(error);
+            } 
+        };
+    
+        // Call the fetchData function
+        if (prevElement.current !== token) {
+            fetchData();
+            prevElement.current = token;
+        }
+    }, [token]); // Include eventId in the dependency array to trigger the effect when it changes
+    
 
    
 

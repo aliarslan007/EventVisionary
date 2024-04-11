@@ -1,9 +1,131 @@
-import React from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { HiOutlineDotsHorizontal } from 'react-icons/hi';
 import ArchivedBack from '../ArchivedBack/ArchivedBack';
 
-const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) => {
+
+const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton, eventId }) => {
+
+    const [event, setEvent] = useState(true);
+    const [bookings, setBookings] = useState(true);
+    const [filteredBookings, setFilteredBookings] = useState([]);
+    const [searchquery, setSearchquery] = useState('');
+    const [searchInput, setSearchInput] = useState(''); 
+    const uniqueIntentIds = useRef({});
+    const [openPopups, setOpenPopups] = useState({});
+
+    
+    const [popup5Class, setPopup5Class] = useState('hide_popup');
+    const [popup15Class, setPopup15Class] = useState('hide_popup');
+    const [popup16Class, setPopup16Class] = useState('hide_popup');
+
+    const handleInputChange = (e) => {
+        // Update the search input value state
+        setSearchInput(e.target.value);
+        // Call the function to update the search query state in the parent component
+        setSearchquery(e.target.value);
+    };
+    const openPopup5 = (index) => {
+        setOpenPopups((prevState) => ({
+          ...prevState,
+          [index]: true
+        }));
+      };
+      const closePopup5 = (index) => {
+        setOpenPopups((prevState) => ({
+          ...prevState,
+          [index]: false
+        }));
+      };
+    // useEffect(() => {
+    //     // Function to filter venues based on search query
+    //     const filterBookings = (query) => {
+    //         const filteredBookings = bookings.filter((booking) => {
+    //             // Perform case-insensitive search on venue name
+    //             const lowerCaseQuery = query.toLowerCase();
+
+    //             return (
+    //                 booking.Event_Name.toLowerCase().includes(lowerCaseQuery)
+    //             ); });
+    //         // Update the filteredVenuesList state with the filtered venues
+    //         setFilteredBookings(filteredBookings);
+    //     };
+    
+    //     filterBookings(searchquery);
+    // }, [searchquery, bookings]);
+
+    useEffect(() => {
+
+        const fetchEventData= async () => {
+            const authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                throw new Error('Authentication token not found');
+            }
+            const authUserId = localStorage.getItem('authUserId');
+            console.log("token is ", authToken);
+            console.log("authUserId is ", authUserId);
+    
+            if (!authUserId) {
+                throw new Error('Authentication authUserId not found');
+            }
+            const eventResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/events/${eventId}/`, {
+                // method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`
+                }
+                // body:requestBody
+                });
+            
+    
+            // Check if the request was successful (status code 2xx)
+            if (eventResponse.ok) {
+                const eventResponseData = await eventResponse.json(); // Parse the response JSON
+                setEvent(eventResponseData);
+                console.log("chart id is ", (eventResponseData.chart_key));
+    
+                // Optionally, you can return the response data or perform other actions here
+            } else {
+                console.log("event retrieving error ", eventResponse.status)
+            }   
+            
+            
+
+
+
+            // fetch booking
+                const requestBody = JSON.stringify({
+                        booking_event : eventId,
+                });
+            // fetch event with eventId
+            const bookingResponse = await fetch(`${process.env.REACT_APP_BASE_URL}/api/bookingsofevent/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`
+                },
+                body:requestBody
+                });
+        
+                // Check if the request was successful (status code 2xx)
+                if (bookingResponse.ok) {
+                    const bookingResponseData = await bookingResponse.json(); // Parse the response JSON
+                    setBookings(bookingResponseData.bookings);
+                    console.log("booking  is ", (bookingResponseData.bookings));
+        
+                    // Optionally, you can return the response data or perform other actions here
+                } else {
+                    console.log("bookings retrieving error ", bookingResponse.status)
+                }   
+
+
+
+
+        }
+        fetchEventData();
+    }, [eventId]);
+
+
   return (
     <div className="manage_order_area">
         {showBackButton && <ArchivedBack />}
@@ -14,7 +136,9 @@ const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) 
 
                 <div className="manage_filter_row">
                     <div className="manage_filter_in">
-                        <input type="search" placeholder="Search by name, order #, or amount..." />
+                        <input type="search" value={searchInput}
+                                onChange={handleInputChange} 
+                                placeholder="Search by name, order #, or amount..." />
                         {/* <i className='bx bx-search'></i> */}
                         <FaSearch style={{ color: '#000' }} />
                     </div>
@@ -47,12 +171,16 @@ const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) 
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>A-00011123323</td>
-                        <td>Johnny Cash</td>
-                        <td>4</td>
-                        <td>$450.00</td>
-                        <td>
+                {bookings && Array.isArray(bookings) && bookings.map((booking, index) => {
+                    if (uniqueIntentIds.current !== (booking.intent_id)) {
+                        uniqueIntentIds.current= (booking.intent_id);
+                        return(
+                    <tr key={index}>
+                        <td>{booking.id}</td>
+                        <td>{booking.billinginfo_ID.first_name}</td>
+                        <td>{booking.quantity}</td>
+                        <td>${booking.total_price}</td>
+                        <td >
                             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
                                 <path d="M11.625 18.5625H13.5L14.625 11.4375H12.7969L11.625 18.5625Z" fill="white" />
                                 <path d="M18.375 14.2969C17.7188 13.9687 17.3438 13.7344 17.3438 13.4062C17.3438 13.125 17.6719 12.7969 18.4219 12.7969C19.0312 12.7969 19.4531 12.9375 19.8281 13.0781L20.0156 13.125L20.25 11.625C19.875 11.4844 19.3125 11.3438 18.6094 11.3438C16.7813 11.3438 15.4688 12.2812 15.4688 13.6875C15.4688 14.7187 16.3594 15.3281 17.1094 15.6562C17.8125 15.9844 18.0937 16.2187 18.0937 16.5469C18.0937 17.0156 17.5313 17.25 16.9688 17.25C16.2188 17.25 15.7969 17.1562 15.1875 16.875L14.9531 16.7812L14.6719 18.4219C15.0937 18.5625 15.8906 18.75 16.6875 18.75C18.6562 18.7969 19.9219 17.8125 19.9219 16.3125C19.875 15.4687 19.4063 14.8125 18.375 14.2969Z" fill="white" />
@@ -63,18 +191,19 @@ const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) 
                         </td>
                         <td>
 
-                            <div className="box ">
+                            <div id={index} onClick={() => openPopup5(index)} className="box ">
                                 <a className="" href="#popup5">
                                     {/* <i className='bx bx-dots-horizontal-rounded'style={{color: "#ffffff"}}></i> */}
                                     <HiOutlineDotsHorizontal style={{ color: "#ffffff" }} />
 
                                 </a>
                             </div>
-                            <div id="popup5" className="overlay ">
-                               
+                            <div id={`popup5${index}`} 
+                                className={`overlay_14 ${openPopups[index] ? 'show_popup' : 'hide_popup'}`}
+                                >
 
                                 <div className="order_deatils">
-                                <a className="jclose" href="#">
+                                <button className="jclose" onClick={() => closePopup5(index)}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="25"
                                         height="25" viewBox="0 0 25 25" fill="none">
                                         <g clip-path="url(#clip0_517_27)">
@@ -91,13 +220,13 @@ const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) 
                                             </clipPath>
                                         </defs>
                                     </svg>
-                                </a>
+                                </button>
                                     <div className="order_dinfo">
 
                                         <div className="order_t">
                                             <div className="order_infog">
-                                                <p>ORDER#</p>
-                                                <p>Purchase Date/Time </p>
+                                                <p>ORDER# {booking.id}</p>
+                                                <p>Purchase Date/Time: {booking.created} </p>
                                             </div>
 
                                             <div className="dropdown1" style={{ float: "left" }}>
@@ -122,11 +251,11 @@ const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) 
                                             </div>
                                         </div>
                                         <div className="order_user">
-                                            <p>Customer Name</p>
-                                            <p>Number of Tickets Purchased:</p>
-                                            <p>Order Total: $Total Paid</p>
-                                            <p>Event Title: <br />
-                                                Event start date/start time   - Event end date/end time</p>
+                                            <p>Customer Name: {booking.billinginfo_ID.first_name}</p>
+                                            <p>Number of Tickets Purchased: {booking.quantity}</p>
+                                            <p>Order Total: ${booking.total_price}</p>
+                                            <p>Event Title: {event.Event_Name}<br />
+                                                {event.start_date}/{event.start_time}   - {event.end_date}/{event.end_time}  </p>
                                         </div>
                                         <div className="order_typed">
                                             <table>
@@ -140,12 +269,48 @@ const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) 
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr>
-                                                        <td>[ user defined ticket type]</td>
-                                                        <td>1</td>
-                                                        <td>$100</td>
-                                                        <td>$ 9.99</td>
+
+                                                {bookings && Array.isArray(bookings) && Object.entries(
+                                                        bookings.reduce((acc, sub_booking) => {
+                                                            if (uniqueIntentIds.current === sub_booking.intent_id) {
+                                                            const key = sub_booking.seat_sub_category ? sub_booking.seat_sub_category : sub_booking.seat_category;
+                                                            if (!acc[key]) {
+                                                                acc[key] = {
+                                                                quantity: 0,
+                                                                totalSeatPrice: 0
+                                                                };
+                                                            }
+                                                            acc[key].quantity++;
+                                                            acc[key].totalSeatPrice += sub_booking.seat_price;
+                                                            }
+                                                            return acc;
+                                                        }, {})
+                                                        ).map(([category, data], sub_index) => (
+                                                        <tr key={sub_index}>
+                                                            <td>{category}</td>
+                                                            <td>{data.quantity}</td>
+                                                            <td>${data.totalSeatPrice}</td>
+                                                            <td>$</td>
+                                                        </tr>
+                                                        ))}
+
+
+                                                {/* {bookings && Array.isArray(bookings) && bookings.map((sub_booking, sub_index) => {
+                                                    if (uniqueIntentIds.current === (sub_booking.intent_id)) {
+                                                        return(
+                                                    <tr key={sub_index}>
+                                                        <td>
+                                                        {sub_booking.seat_sub_category ? sub_booking.seat_sub_category : sub_booking.seat_category}
+                                                        </td>                                                        
+                                                        <td>{sub_booking.quantity}</td>
+                                                        <td>${sub_booking.seat_price}</td>
+                                                        <td>$ </td>
                                                     </tr>
+                                                        )
+                                                    }
+                                                    return null
+                                                })} */}
+
                                                 </tbody>
                                             </table>
                                         </div>
@@ -159,7 +324,7 @@ const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) 
                                             <div className="order_paydt">
                                                 <div className="pay_row">
                                                     <p>Subtotal</p>
-                                                    <p>$100</p>
+                                                    <p>${booking.sub_price}</p>
                                                 </div>
                                             </div>
 
@@ -250,7 +415,11 @@ const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) 
                             </div>
                         </div>
                     </tr>
-                    <tr>
+                        )
+                            }
+                            return null
+                        })}
+                    {/* <tr>
                         <td>A-00011123323</td>
                         <td>Johnny Cash</td>
                         <td>4</td>
@@ -297,7 +466,7 @@ const ManageOrdersCom = ({ title = '', label = '', href = '', showBackButton }) 
                                 <HiOutlineDotsHorizontal style={{ color: "#ffffff" }} />
                             </a>
                         </td>
-                    </tr>
+                    </tr> */}
                 </tbody>
             </table>
         </div>
